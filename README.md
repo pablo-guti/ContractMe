@@ -1,6 +1,27 @@
 # UVA-ContractMe
 
+## Compilar y desplegar contratos
 
+Para compilar y  desplegar el contrato ejecutar
+
+```
+truffle compile
+truffle migrate -network development
+```
+Para poder interactuar con el contrato en necesario Ganache GUI 
+
+Una vez desplegado el contrato se puede interactuar con el desde la consola ejecutando
+
+```
+truffle console
+```
+
+Un ejemplo sería el siguiente
+
+```
+const myContract = await MyContract.deployed();
+await myContract.operacion_deseada();
+```
 
 ## Getting started
 
