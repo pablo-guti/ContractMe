@@ -2,7 +2,7 @@
 pragma solidity ^0.8.2;
 
 contract MyContract {
-
+    
     struct Contrato {
         uint id;
         string descripcion;
@@ -52,5 +52,25 @@ contract MyContract {
         emit ContratoFinalizado(_id, block.timestamp);
     }
 
-   
+    function getContrato(uint _id) public view returns (Contrato memory){
+        require(_id < contratos.length, "No existe el contrato");
+        return contratos[_id];
+    }
+
+    function getAllContracts () public view returns (Contrato[] memory){
+        require(contratos.length > 0, "Aun no existen contratos");
+        Contrato[] memory contratosAux = new Contrato[](contratos.length);
+        uint count = 0;
+        for (uint i=0; i < contratos.length; i++){
+            contratosAux[count] = contratos[i];
+            count ++;
+        }
+
+        // Redimensiona el array  para eliminar los espacios no utilizados
+        assembly {
+            mstore(contratosAux, count)
+        }
+        return contratosAux;
+    }
+
 }
