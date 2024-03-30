@@ -158,7 +158,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   baseButton: {
-    width: 360,
     height: 64,
     marginTop: 16,
   },

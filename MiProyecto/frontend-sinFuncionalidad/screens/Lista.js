@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   View,
@@ -17,10 +17,58 @@ import { FontFamily, Color, Padding, Border, FontSize } from "../GlobalStyles";
 const Lista = () => {
   const navigation = useNavigation();
 
+  const [selectedTab, setSelectedTab] = useState("Mis Contratos");
+
+  const renderScrollView = () => {
+    if (selectedTab === "Mis Contratos") {
+      return (
+        <ScrollView
+          style={styles.scrollGroupActivo}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollGroupActivoScrollViewContent}
+        >
+          <ContentRow9 />
+          <ContentRow8 />
+          <ContentRow8 />
+          <ContentRow8 />
+          <ContentRow8 />
+          <ContentRow8 />
+          <ContentRow8 />
+          <ContentRow8 />
+        </ScrollView>
+      );
+    } else if (selectedTab === "Para firmar") {
+      return (
+        <ScrollView
+          style={styles.scrollGroupActivo}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollGroupActivoScrollViewContent}
+        >
+          <ContentRow9 />
+          <ContentRow8 />
+          <ContentRow8 />
+        </ScrollView>
+      );
+    } else if (selectedTab === "Finalizado") {
+      return (
+        <ScrollView
+          style={styles.scrollGroupActivo}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollGroupActivoScrollViewContent}
+        >
+          <ContentRow9 />
+        </ScrollView>
+      );
+    }
+  };
+
   return (
-    <View style={[styles.lista1, styles.copyFlexBox]}>
+    <View style={[styles.lista, styles.copyFlexBox]}>
       <View style={styles.statusBar} />
-      <View style={[styles.navigationBar, styles.navigationBarSpaceBlock]}>
+      <View style={styles.navigationBar}>
         <View style={[styles.largeTitleBar, styles.contentFlexBox]}>
           <TouchableOpacity
             style={styles.leftAction}
@@ -52,130 +100,73 @@ const Lista = () => {
             </TouchableOpacity>
           </View>
         </View>
+
         <View style={[styles.tabGrp, styles.tabGrpFlexBox]}>
-          <View style={[styles.tab, styles.tabFlexBox]}>
+          <TouchableOpacity
+            style={[
+              styles.tabSelected,
+              styles.tabFlexBox,
+              selectedTab === "Mis Contratos"
+                ? styles.tabSelected
+                : styles.tabUnselected,
+            ]}
+            onPress={() => setSelectedTab("Mis Contratos")}
+          >
             <Text
-              style={[styles.misContratos, styles.rowTypo]}
+              style={[
+                styles.misContratos,
+                styles.rowTypo,
+                selectedTab === "Mis Contratos"
+                  ? styles.misContratosBlanco
+                  : styles.misContratosNegro,
+              ]}
             >{`Mis Contratos `}</Text>
-          </View>
-          <View style={[styles.tab1, styles.tabFlexBox]}>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.tab1Unselected,
+              styles.tabFlexBox,
+              selectedTab === "Para firmar"
+                ? styles.tab1Selected
+                : styles.tab1Unselected,
+            ]}
+            onPress={() => setSelectedTab("Para firmar")}
+          >
             <Text
-              style={[styles.paraFirmar, styles.rowTypo]}
+              style={[
+                styles.paraFirmarNegro,
+                styles.rowTypo,
+                selectedTab === "Para firmar"
+                  ? styles.paraFirmarBlanco
+                  : styles.paraFirmarNegro,
+              ]}
             >{`Para firmar `}</Text>
-          </View>
-          <View style={[styles.tab1, styles.tabFlexBox]}>
-            <Text style={[styles.paraFirmar, styles.rowTypo]}>Finalizado</Text>
-          </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.tab1Unselected,
+              styles.tabFlexBox,
+              selectedTab === "Finalizado"
+                ? styles.tab1Selected
+                : styles.tab1Unselected,
+            ]}
+            onPress={() => setSelectedTab("Finalizado")}
+          >
+            <Text
+              style={[
+                styles.paraFirmar,
+                styles.rowTypo,
+                selectedTab === "Finalizado"
+                  ? styles.firmadoBlanco
+                  : styles.firmadoNegro,
+              ]}
+            >
+              Finalizado
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
-      <ScrollView
-        style={[styles.scrollGroupActivo, styles.navigationBarSpaceBlock]}
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollGroupActivoScrollViewContent}
-      >
-        <ContentRow9 />
-        <ContentRow8 />
-        <ContentRow8 />
-        <ContentRow8 />
-        <ContentRow8 />
-        <ContentRow8 />
-        <ContentRow8 />
-        <ContentRow8 />
-        <View style={[styles.contentRow, styles.tabGrpFlexBox]}>
-          <View style={[styles.content, styles.contentFlexBox]}>
-            <View style={styles.imageGroup}>
-              <Image
-                style={[styles.imageIcon, styles.imagePosition]}
-                contentFit="cover"
-                source={require("../assets/image.png")}
-              />
-              <View style={[styles.imageBlurEffect, styles.imagePosition]} />
-              <LinearGradient
-                style={[styles.imageGradientOverlay, styles.imagePosition]}
-                locations={[0, 1]}
-                colors={["rgba(26, 26, 26, 0.77)", "rgba(26, 26, 26, 0)"]}
-              />
-            </View>
-            <View style={[styles.copy, styles.copyFlexBox]}>
-              <Text style={[styles.rowHeadline, styles.rowLayout]}>
-                Titulo Contrato
-              </Text>
-              <Text style={[styles.rowDescription, styles.rowTypo]}>
-                Fecha Inicio-Fecha Fin
-              </Text>
-              <Text style={[styles.rowHelperText, styles.rowTypo]}>Activo</Text>
-            </View>
-          </View>
-          <Image
-            style={styles.arrowRightIcon}
-            contentFit="cover"
-            source={require("../assets/arrowright.png")}
-          />
-        </View>
-        <View style={[styles.contentRow, styles.tabGrpFlexBox]}>
-          <View style={[styles.content, styles.contentFlexBox]}>
-            <View style={styles.imageGroup}>
-              <Image
-                style={[styles.imageIcon, styles.imagePosition]}
-                contentFit="cover"
-                source={require("../assets/image.png")}
-              />
-              <View style={[styles.imageBlurEffect, styles.imagePosition]} />
-              <LinearGradient
-                style={[styles.imageGradientOverlay, styles.imagePosition]}
-                locations={[0, 1]}
-                colors={["rgba(26, 26, 26, 0.77)", "rgba(26, 26, 26, 0)"]}
-              />
-            </View>
-            <View style={[styles.copy, styles.copyFlexBox]}>
-              <Text style={[styles.rowHeadline, styles.rowLayout]}>
-                Titulo Contrato
-              </Text>
-              <Text style={[styles.rowDescription, styles.rowTypo]}>
-                Fecha Inicio-Fecha Fin
-              </Text>
-              <Text style={[styles.rowHelperText, styles.rowTypo]}>Activo</Text>
-            </View>
-          </View>
-          <Image
-            style={styles.arrowRightIcon}
-            contentFit="cover"
-            source={require("../assets/arrowright.png")}
-          />
-        </View>
-        <View style={[styles.contentRow, styles.tabGrpFlexBox]}>
-          <View style={[styles.content, styles.contentFlexBox]}>
-            <View style={styles.imageGroup}>
-              <Image
-                style={[styles.imageIcon, styles.imagePosition]}
-                contentFit="cover"
-                source={require("../assets/image.png")}
-              />
-              <View style={[styles.imageBlurEffect, styles.imagePosition]} />
-              <LinearGradient
-                style={[styles.imageGradientOverlay, styles.imagePosition]}
-                locations={[0, 1]}
-                colors={["rgba(26, 26, 26, 0.77)", "rgba(26, 26, 26, 0)"]}
-              />
-            </View>
-            <View style={[styles.copy, styles.copyFlexBox]}>
-              <Text style={[styles.rowHeadline, styles.rowLayout]}>
-                Titulo Contrato
-              </Text>
-              <Text style={[styles.rowDescription, styles.rowTypo]}>
-                Fecha Inicio-Fecha Fin
-              </Text>
-              <Text style={[styles.rowHelperText, styles.rowTypo]}>Activo</Text>
-            </View>
-          </View>
-          <Image
-            style={styles.arrowRightIcon}
-            contentFit="cover"
-            source={require("../assets/arrowright.png")}
-          />
-        </View>
-      </ScrollView>
+      {renderScrollView()}
     </View>
   );
 };
@@ -190,17 +181,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flex: 1,
   },
-  navigationBarSpaceBlock: {
-    marginTop: 15,
-    alignSelf: "stretch",
-  },
   contentFlexBox: {
     flexDirection: "row",
     alignItems: "center",
   },
   pageTitleTypo: {
     textAlign: "left",
-    fontFamily: FontFamily.header2,
+    fontFamily: FontFamily.header6,
     fontWeight: "600",
     color: Color.fontWhite,
     alignSelf: "stretch",
@@ -232,7 +219,7 @@ const styles = StyleSheet.create({
   },
   rowLayout: {
     lineHeight: 24,
-    fontSize: FontSize.paragraphRegularLarge_size,
+    fontSize: FontSize.header6_size,
   },
   statusBar: {
     height: 37,
@@ -268,29 +255,63 @@ const styles = StyleSheet.create({
     paddingBottom: Padding.p_xs,
     alignSelf: "stretch",
   },
-  misContratos: {
+  misContratosBlanco: {
     color: Color.monochromatic10,
     lineHeight: 24,
-    fontSize: FontSize.paragraphRegularLarge_size,
+    fontSize: FontSize.header6_size,
   },
-  tab: {
+  misContratosNegro: {
+    color: Color.fontWhite,
+    lineHeight: 24,
+    fontSize: FontSize.header6_size,
+  },
+  tabSelected: {
     backgroundColor: Color.brand05,
   },
-  paraFirmar: {
+  tabUnselected: {
+    backgroundColor: Color.blurLight,
+  },
+  paraFirmarNegro: {
     lineHeight: 24,
-    fontSize: FontSize.paragraphRegularLarge_size,
+    fontSize: FontSize.header6_size,
     color: Color.fontWhite,
     fontFamily: FontFamily.paragraphRegularSmall,
   },
-  tab1: {
+  paraFirmarBlanco: {
+    lineHeight: 24,
+    fontSize: FontSize.header6_size,
+    color: Color.monochromatic10,
+    fontFamily: FontFamily.paragraphRegularSmall,
+  },
+  firmadoNegro: {
+    lineHeight: 24,
+    fontSize: FontSize.header6_size,
+    color: Color.fontWhite,
+    fontFamily: FontFamily.paragraphRegularSmall,
+  },
+  firmadoBlanco: {
+    lineHeight: 24,
+    fontSize: FontSize.header6_size,
+    color: Color.monochromatic10,
+    fontFamily: FontFamily.paragraphRegularSmall,
+  },
+
+  tab1Selected: {
+    marginLeft: 8,
+    backgroundColor: Color.brand05,
+  },
+  tab1Unselected: {
     marginLeft: 8,
     backgroundColor: Color.blurLight,
   },
   tabGrp: {
-    paddingVertical: 0,
+    paddingTop: Padding.p_3xs,
+    paddingBottom: Padding.p_mini,
   },
   navigationBar: {
-    height: 118,
+    width: 386,
+    height: 133,
+    marginTop: 15,
     backgroundColor: Color.blurLight,
   },
   imageIcon: {
@@ -316,14 +337,14 @@ const styles = StyleSheet.create({
   rowHeadline: {
     textTransform: "capitalize",
     textAlign: "left",
-    fontFamily: FontFamily.header2,
+    fontFamily: FontFamily.header6,
     fontWeight: "600",
     color: Color.fontWhite,
     alignSelf: "stretch",
   },
   rowDescription: {
     lineHeight: 24,
-    fontSize: FontSize.paragraphRegularLarge_size,
+    fontSize: FontSize.header6_size,
     color: Color.fontWhite,
     fontFamily: FontFamily.paragraphRegularSmall,
     alignSelf: "stretch",
@@ -352,9 +373,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Padding.p_base,
   },
   scrollGroupActivo: {
+    marginTop: 15,
+    alignSelf: "stretch",
     flex: 1,
   },
-  lista1: {
+  lista: {
     shadowColor: "rgba(180, 188, 203, 0.24)",
     shadowOffset: {
       width: 0,
