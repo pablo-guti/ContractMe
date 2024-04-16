@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import React, { useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 import Web3 from "web3";
+import MyContract from "../build/contracts/MyContract.json";
 
 export default function App() {
   const [account, setAccount] = useState("");

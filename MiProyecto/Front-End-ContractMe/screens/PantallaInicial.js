@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,9 +9,11 @@ import {
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
 import { Color, FontSize, FontFamily, Border, Padding } from "../GlobalStyles";
+import { Context } from "../App";
 
-const PantallaInicial = () => {
+const PantallaInicial = ({ props }) => {
   const navigation = useNavigation();
+  const { account } = useContext(Context);
 
   return (
     <View style={[styles.pantallaInicial, styles.buttonFlexBox1]}>
