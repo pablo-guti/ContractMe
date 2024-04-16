@@ -8,7 +8,6 @@ import {
   ScrollView,
 } from "react-native";
 import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import ContentRow9 from "../components/ContentRow9";
 import ContentRow8 from "../components/ContentRow8";
@@ -73,7 +72,7 @@ const Lista = () => {
           <TouchableOpacity
             style={styles.leftAction}
             activeOpacity={0.2}
-            onPress={() => navigation.navigate("SignIn")}
+            onPress={() => navigation.navigate("PantallaInicial")}
           >
             <Image
               style={styles.icon}

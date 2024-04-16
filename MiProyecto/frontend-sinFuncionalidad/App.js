@@ -1,16 +1,11 @@
 const Stack = createNativeStackNavigator();
-import * as React from "react";
+import "./global";
+import "react-native-get-random-values";
+import Web3 from "web3";
+import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import PantallaInicial from "./screens/PantallaInicial";
-import ContentRow from "./components/ContentRow";
-import ContentRow1 from "./components/ContentRow1";
-import ContentRow2 from "./components/ContentRow2";
-import ContentRow3 from "./components/ContentRow3";
-import ContentRow4 from "./components/ContentRow4";
-import ContentRow5 from "./components/ContentRow5";
-import ContentRow6 from "./components/ContentRow6";
-import ContentRow7 from "./components/ContentRow7";
 import Info from "./screens/Info";
 import Lista from "./screens/Lista";
 import SignIn from "./screens/SignIn";
@@ -22,6 +17,7 @@ import * as eva from "@eva-design/eva";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import {
   View,
+  Button,
   Text,
   Pressable,
   TouchableOpacity,
@@ -30,6 +26,33 @@ import {
 
 const App = () => {
   const [hideSplashScreen, setHideSplashScreen] = React.useState(true);
+  const [web3, setWeb3] = useState(null);
+  const [account, setAccount] = useState();
+
+  useEffect(() => {
+    async function load() {
+      if (window.ethereum) {
+        window.web3 = new Web3(window.ethereum);
+        await window.ethereum.enable();
+      } else if (window.web3) {
+        window.web3 = new Web3(window.web3.currentProvider);
+      } else {
+        window.alert(
+          "No se detectó ningún proveedor de Ethereum. Por favor, instala MetaMask en tu navegador."
+        );
+      }
+
+      const web3 = window.web3;
+      const accounts = await web3.eth.requestAccounts();
+      const ownerAddress = accounts[0];
+
+      setWeb3(web3);
+      setAccount(ownerAddress);
+      console.log(account);
+    }
+
+    load();
+  }, []);
 
   const [fontsLoaded, error] = useFonts({
     "Inter-Regular": require("./assets/fonts/Inter-Regular.ttf"),

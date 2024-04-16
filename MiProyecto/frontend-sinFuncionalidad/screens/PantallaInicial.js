@@ -39,7 +39,7 @@ con Blockchain`}</Text>
             <TouchableOpacity
               style={[styles.button, styles.buttonFlexBox]}
               activeOpacity={0.2}
-              onPress={() => navigation.navigate("SignIn")}
+              onPress={() => navigation.navigate("Lista")}
             >
               <Text style={styles.comenzar}>Comenzar</Text>
             </TouchableOpacity>
