@@ -15,7 +15,6 @@ import { FontFamily, Color, Padding, Border, FontSize } from "../GlobalStyles";
 
 const Lista = () => {
   const navigation = useNavigation();
-
   const [selectedTab, setSelectedTab] = useState("Mis Contratos");
 
   const renderScrollView = () => {

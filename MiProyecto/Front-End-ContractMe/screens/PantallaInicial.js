@@ -1,3 +1,6 @@
+import "react-native-get-random-values";
+import Web3 from "web3";
+import MyContract from "../contracts/MyContract.json";
 import React, { useState, useContext, useEffect } from "react";
 import {
   View,
@@ -9,11 +12,45 @@ import {
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
 import { Color, FontSize, FontFamily, Border, Padding } from "../GlobalStyles";
-import { Context } from "../App";
 
-const PantallaInicial = ({ props }) => {
+//Conexión con la blockchain
+const web3 = new Web3(
+  new Web3.providers.HttpProvider("http://192.168.1.35:7545")
+);
+
+const getContract = async (web3) => {
+  const networkID = await web3.eth.net.getId();
+  const network = MyContract.networks[networkID];
+  return new web3.eth.Contract(MyContract.abi, network && network.address);
+};
+
+const PantallaInicial = () => {
   const navigation = useNavigation();
-  const { account } = useContext(Context);
+
+  const [account, setAccount] = useState();
+  const [MyContract, setMyContract] = useState();
+
+  useEffect(() => {
+    const connectToBlockchain = async () => {
+      try {
+        const accounts = await web3.eth.getAccounts();
+        const ownerAdress = accounts[0];
+        const contract = await getContract(web3);
+        setAccount(ownerAdress);
+        setMyContract(contract);
+      } catch (error) {
+        console.error("Error al conectar a la blockchain:", error);
+        // Agregar más información sobre el error
+        console.error("Error detallado:", error.message);
+      }
+    };
+
+    connectToBlockchain();
+  }, []);
+
+  const handleBotonPress = () => {
+    console.log(account);
+  };
 
   return (
     <View style={[styles.pantallaInicial, styles.buttonFlexBox1]}>

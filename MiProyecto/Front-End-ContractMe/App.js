@@ -24,9 +24,6 @@ import {
 } from "react-native";
 import MyContract from "./contracts/MyContract.json";
 
-//Exporto el contexto para pasar prámetros
-export const Context = createContext();
-
 const getContract = async (web3) => {
   const networkID = await web3.eth.net.getId();
   const network = MyContract.networks[networkID];
@@ -35,16 +32,20 @@ const getContract = async (web3) => {
 
 const App = () => {
   const [hideSplashScreen, setHideSplashScreen] = React.useState(true);
+
+  /****************************************************************************************/
+  /*Conexión con blockchain y obtención del contrato*/
+
   const [account, setAccount] = useState();
   const [MyContract, setMyContract] = useState();
-
-  const web3 = new Web3(
-    new Web3.providers.HttpProvider("http://192.168.1.35:7545")
-  );
 
   useEffect(() => {
     const connectToBlockchain = async () => {
       try {
+        //Conexión con la blockchain
+        const web3 = new Web3(
+          new Web3.providers.HttpProvider("http://192.168.1.35:7545")
+        );
         const accounts = await web3.eth.getAccounts();
         const ownerAdress = accounts[0];
         const contract = await getContract(web3);
@@ -59,6 +60,8 @@ const App = () => {
 
     connectToBlockchain();
   }, []);
+
+  /**********************************************************************************/
 
   const [fontsLoaded, error] = useFonts({
     "Inter-Regular": require("./assets/fonts/Inter-Regular.ttf"),
@@ -103,39 +106,37 @@ const App = () => {
     <>
       <IconRegistry icons={[MaterialIconsPack]} />
       <ApplicationProvider {...eva} theme={eva.light}>
-        <Context.Provider value={{ account }}>
-          <NavigationContainer>
-            {hideSplashScreen ? (
-              <Stack.Navigator screenOptions={{ headerShown: false }}>
-                <Stack.Screen
-                  name="PantallaInicial"
-                  component={PantallaInicial}
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="Info"
-                  component={Info}
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="Lista"
-                  component={Lista}
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="SignIn"
-                  component={SignIn}
-                  options={{ headerShown: false }}
-                />
-                <Stack.Screen
-                  name="NuevoContrato"
-                  component={NuevoContrato}
-                  options={{ headerShown: false }}
-                />
-              </Stack.Navigator>
-            ) : null}
-          </NavigationContainer>
-        </Context.Provider>
+        <NavigationContainer>
+          {hideSplashScreen ? (
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+              <Stack.Screen
+                name="PantallaInicial"
+                component={PantallaInicial}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="Info"
+                component={Info}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="Lista"
+                component={Lista}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="SignIn"
+                component={SignIn}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="NuevoContrato"
+                component={NuevoContrato}
+                options={{ headerShown: false }}
+              />
+            </Stack.Navigator>
+          ) : null}
+        </NavigationContainer>
       </ApplicationProvider>
     </>
   );
