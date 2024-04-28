@@ -11,7 +11,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { FontFamily, Color, Border, FontSize, Padding } from "../GlobalStyles";
 
-const ContentRow9 = () => {
+const ContentRow9 = ({ titulo, fechaInicio, fechaFin, estado }) => {
   const navigation = useNavigation();
 
   return (
@@ -35,9 +35,9 @@ const ContentRow9 = () => {
           />
         </View>
         <View style={styles.copy}>
-          <Text style={styles.rowHeadline}>Titulo Contrato</Text>
+          <Text style={styles.rowHeadline}>{titulo}</Text>
           <Text style={[styles.rowDescription, styles.rowTypo]}>
-            Fecha Inicio-Fecha Fin
+            {fechaInicio}-{fechaFin}
           </Text>
           <Text style={[styles.rowHelperText, styles.rowTypo]}>Activo</Text>
         </View>

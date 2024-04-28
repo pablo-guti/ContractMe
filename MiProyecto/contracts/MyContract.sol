@@ -9,8 +9,8 @@ contract MyContract {
         string descripcion;
         EstadoContrato estado;
         uint256 precio;
-        uint256 fechaInicio;
-        uint256 fechaFin;
+        string fechaInicio;
+        string fechaFin;
     }
 
     enum EstadoContrato { Inactivo, Activo, Firmado, Finalizado }
@@ -18,13 +18,13 @@ contract MyContract {
     
     mapping (uint => address) public contractOwner;
 
-    event ContratoCreado(uint indexed id,string titulo, string descripcion, address ownerAddress, uint256 precio, uint256 fechaInicio, uint256 fechaFin);
+    event ContratoCreado(uint indexed id,string titulo, string descripcion, address ownerAddress, uint256 precio, string fechaInicio, string fechaFin);
     //event ContratoModificado(uint indexed id, string descripcion, address ownerAddress, uint256 fecha);
     //event ContratoFirmado(uint indexed id, address firmante, uint256 fecha);
     //event ContratoFinalizado(uint indexed id, uint256 fecha);
 
     
-    function crearContrato(string memory _descripcion, string memory _titulo, uint256 _precio, uint256 _fechaInicio, uint256 _fechaFin) public {
+    function crearContrato(string memory _titulo, string memory _descripcion, uint256 _precio, string memory _fechaInicio, string memory _fechaFin) public {
         require(_precio > 0, "El precio es igual o inferior a cero");
         uint _id = contratos.length;
         contratos.push(Contrato(_id, _titulo, _descripcion, EstadoContrato.Activo, _precio, _fechaInicio, _fechaFin));

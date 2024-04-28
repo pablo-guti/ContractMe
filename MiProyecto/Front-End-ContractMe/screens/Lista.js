@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -7,17 +7,63 @@ import {
   Text,
   ScrollView,
 } from "react-native";
+import Web3 from "web3";
+import MyContract from "../contracts/MyContract.json";
 import { Image } from "expo-image";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import ContentRow9 from "../components/ContentRow9";
 import ContentRow8 from "../components/ContentRow8";
 import { FontFamily, Color, Padding, Border, FontSize } from "../GlobalStyles";
+import { requestEIP6963Providers } from "web3/lib/commonjs/web3_eip6963";
+
+const getContract = async (web3) => {
+  const networkID = await web3.eth.net.getId();
+  const network = MyContract.networks[networkID];
+  return new web3.eth.Contract(MyContract.abi, network && network.address);
+};
 
 const Lista = () => {
+  /****************************************************************************************/
+  /*Conexión con blockchain y obtención del contrato*/
+
+  const [contracts, setContracts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const connectToBlockchain = useCallback(async () => {
+    try {
+      const web3 = new Web3(
+        new Web3.providers.HttpProvider("http://192.168.1.35:7545")
+      );
+      const accounts = await web3.eth.getAccounts();
+      const ownerAddress = accounts[0];
+      const networkID = await web3.eth.net.getId();
+      const network = MyContract.networks[networkID];
+      const contract = new web3.eth.Contract(
+        MyContract.abi,
+        network && network.address
+      );
+      const contractsReturned = await contract.methods.getAllContracts().call();
+      setContracts(contractsReturned);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error al conectar a la blockchain:", error);
+      console.error("Error detallado:", error.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    connectToBlockchain();
+  }, [connectToBlockchain]);
+  /**********************************************************************************/
+
   const navigation = useNavigation();
   const [selectedTab, setSelectedTab] = useState("Mis Contratos");
 
   const renderScrollView = () => {
+    if (!contracts.length) {
+      return null; // No renderizar nada si los contratos aún no están disponibles
+    }
+
     if (selectedTab === "Mis Contratos") {
       return (
         <ScrollView
@@ -26,14 +72,14 @@ const Lista = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.scrollGroupActivoScrollViewContent}
         >
-          <ContentRow9 />
-          <ContentRow8 />
-          <ContentRow8 />
-          <ContentRow8 />
-          <ContentRow8 />
-          <ContentRow8 />
-          <ContentRow8 />
-          <ContentRow8 />
+          {contracts.map((contract, index) => (
+            <ContentRow9
+              key={index}
+              titulo={contract["titulo"]}
+              fechaInicio={contract["fechaInicio"]}
+              fechaFin={contract["fechaFin"]}
+            />
+          ))}
         </ScrollView>
       );
     } else if (selectedTab === "Para firmar") {

@@ -2,6 +2,7 @@ const Stack = createNativeStackNavigator();
 import "./global";
 import "react-native-get-random-values";
 import Web3 from "web3";
+import MyContract from "./contracts/MyContract.json";
 import React, { useState, useEffect, createContext } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { useFonts } from "expo-font";
@@ -22,7 +23,6 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import MyContract from "./contracts/MyContract.json";
 
 const getContract = async (web3) => {
   const networkID = await web3.eth.net.getId();

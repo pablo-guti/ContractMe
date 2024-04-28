@@ -2,7 +2,6 @@ import "../global";
 import "react-native-get-random-values";
 import React, { useState, useEffect } from "react";
 import Web3 from "web3";
-import Web3Utils from "web3-utils";
 import MyContract from "../contracts/MyContract.json";
 import {
   StyleSheet,
@@ -93,23 +92,20 @@ const NuevoContrato = () => {
     });
   };
 
-  const handleSubmit = () => {
-    console.log("Enviando contrato...");
-    handleCreateContract();
-  };
-
   async function handleCreateContract() {
     try {
-      const precioEnWei = We3Utils.toWei(formData.precio, "ether");
+      const precioEnWei = Web3.utils.toWei(formData.precio, "ether");
       await MyContract.methods
         .crearContrato(
-          formData.descripcionContrato,
           formData.tituloContrato,
+          formData.descripcionContrato,
           precioEnWei,
           formData.fechaInicio,
           formData.fechaFin
         )
-        .send({ from: account });
+        .send({ from: account, gas: "1000000" });
+      console.log("Contrato Creado");
+      navigation.goBack();
     } catch (error) {
       console.error("Error al crear el contrato", error);
     }
@@ -222,7 +218,7 @@ const NuevoContrato = () => {
             locations={[0, 1]}
             colors={["#9b40bf", "#f344f7"]}
           >
-            <Pressable style={styles.pressable} onPress={handleSubmit}>
+            <Pressable style={styles.pressable} onPress={handleCreateContract}>
               <Text style={[styles.buttonText, styles.label1Typo]}>
                 Crear Contrato
               </Text>
