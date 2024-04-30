@@ -31,6 +31,30 @@ contract MyContract {
         contractOwner[_id] = msg.sender;
         emit ContratoCreado(_id, _titulo, _descripcion, contractOwner[_id], _precio, _fechaInicio, _fechaFin);
     }
+
+     function getContrato(uint _id) public view returns (Contrato memory){
+        require(_id < contratos.length, "No existe ningun contrato");
+        return contratos[_id];
+    }
+
+    function getAllContracts () public view returns (Contrato[] memory){
+        require(contratos.length > 0, "Aun no existen contratos");
+        Contrato[] memory contratosAux = new Contrato[](contratos.length);
+        uint count = 0;
+        for (uint i=0; i < contratos.length; i++){
+            contratosAux[count] = contratos[i];
+            count ++;
+        }
+
+        // Redimensiona el array  para eliminar los espacios no utilizados
+        assembly {
+            mstore(contratosAux, count)
+        }
+        return contratosAux;
+    }
+
+
+    
     /*
     function modificarContrato(uint _id, string memory _nuevaDescripcion) public {
         require(contractOwner[_id] == msg.sender, "No tienes permiso para modificar este contrato");
@@ -61,25 +85,6 @@ contract MyContract {
     }
     */
 
-    function getContrato(uint _id) public view returns (Contrato memory){
-        require(_id < contratos.length, "No existe ningun contrato");
-        return contratos[_id];
-    }
-
-    function getAllContracts () public view returns (Contrato[] memory){
-        require(contratos.length > 0, "Aun no existen contratos");
-        Contrato[] memory contratosAux = new Contrato[](contratos.length);
-        uint count = 0;
-        for (uint i=0; i < contratos.length; i++){
-            contratosAux[count] = contratos[i];
-            count ++;
-        }
-
-        // Redimensiona el array  para eliminar los espacios no utilizados
-        assembly {
-            mstore(contratosAux, count)
-        }
-        return contratosAux;
-    }
+   
 
 }

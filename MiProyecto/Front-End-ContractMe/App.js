@@ -10,6 +10,7 @@ import PantallaInicial from "./screens/PantallaInicial";
 import Info from "./screens/Info";
 import Lista from "./screens/Lista";
 import SignIn from "./screens/SignIn";
+import Firmar from "./screens/Firmar";
 import NuevoContrato from "./screens/NuevoContrato";
 import MIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import { IconRegistry, ApplicationProvider } from "@ui-kitten/components";
@@ -23,6 +24,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
+import { createStackNavigator } from "@react-navigation/stack";
 
 const getContract = async (web3) => {
   const networkID = await web3.eth.net.getId();
@@ -31,8 +33,6 @@ const getContract = async (web3) => {
 };
 
 const App = () => {
-  const [hideSplashScreen, setHideSplashScreen] = React.useState(true);
-
   /****************************************************************************************/
   /*Conexión con blockchain y obtención del contrato*/
 
@@ -62,6 +62,15 @@ const App = () => {
   }, []);
 
   /**********************************************************************************/
+
+  const [hideSplashScreen, setHideSplashScreen] = React.useState(true);
+  const Stack = createStackNavigator();
+  const [listaKey, setListaKey] = useState(0); // Estado para la clave de la pantalla Lista
+
+  // Función para actualizar la clave de la pantalla Lista
+  const refreshLista = () => {
+    setListaKey((prevKey) => prevKey + 1);
+  };
 
   const [fontsLoaded, error] = useFonts({
     "Inter-Regular": require("./assets/fonts/Inter-Regular.ttf"),
@@ -115,23 +124,31 @@ const App = () => {
                 options={{ headerShown: false }}
               />
               <Stack.Screen
+                name="NuevoContrato"
+                component={NuevoContrato}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="Lista"
+                key={"Lista_" + listaKey}
+                component={Lista}
+                options={{ headerShown: false }}
+                listeners={{ focus: () => refreshLista() }}
+              />
+              <Stack.Screen
                 name="Info"
                 component={Info}
                 options={{ headerShown: false }}
               />
               <Stack.Screen
-                name="Lista"
-                component={Lista}
+                name="Firmar"
+                component={Firmar}
                 options={{ headerShown: false }}
               />
+
               <Stack.Screen
                 name="SignIn"
                 component={SignIn}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="NuevoContrato"
-                component={NuevoContrato}
                 options={{ headerShown: false }}
               />
             </Stack.Navigator>

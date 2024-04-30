@@ -6,28 +6,22 @@ import {
   TouchableOpacity,
   Text,
   ScrollView,
+  RefreshControl,
 } from "react-native";
 import Web3 from "web3";
 import MyContract from "../contracts/MyContract.json";
 import { Image } from "expo-image";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import ContentRow9 from "../components/ContentRow9";
-import ContentRow8 from "../components/ContentRow8";
+import ContentRow from "../components/ContentRow";
 import { FontFamily, Color, Padding, Border, FontSize } from "../GlobalStyles";
 import { requestEIP6963Providers } from "web3/lib/commonjs/web3_eip6963";
-
-const getContract = async (web3) => {
-  const networkID = await web3.eth.net.getId();
-  const network = MyContract.networks[networkID];
-  return new web3.eth.Contract(MyContract.abi, network && network.address);
-};
 
 const Lista = () => {
   /****************************************************************************************/
   /*Conexión con blockchain y obtención del contrato*/
 
   const [contracts, setContracts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [refresh, setRefresh] = useState(false); // Nuevo estado para la recarga
 
   const connectToBlockchain = useCallback(async () => {
     try {
@@ -44,7 +38,6 @@ const Lista = () => {
       );
       const contractsReturned = await contract.methods.getAllContracts().call();
       setContracts(contractsReturned);
-      setLoading(false);
     } catch (error) {
       console.error("Error al conectar a la blockchain:", error);
       console.error("Error detallado:", error.message);
@@ -53,11 +46,16 @@ const Lista = () => {
 
   useEffect(() => {
     connectToBlockchain();
-  }, [connectToBlockchain]);
+  }, [connectToBlockchain, refresh]);
   /**********************************************************************************/
 
   const navigation = useNavigation();
   const [selectedTab, setSelectedTab] = useState("Mis Contratos");
+
+  const handleRefresh = () => {
+    // Cambiar el estado para forzar una recarga
+    setRefresh((prevState) => !prevState);
+  };
 
   const renderScrollView = () => {
     if (!contracts.length) {
@@ -73,11 +71,12 @@ const Lista = () => {
           contentContainerStyle={styles.scrollGroupActivoScrollViewContent}
         >
           {contracts.map((contract, index) => (
-            <ContentRow9
+            <ContentRow
               key={index}
               titulo={contract["titulo"]}
               fechaInicio={contract["fechaInicio"]}
               fechaFin={contract["fechaFin"]}
+              id={contract["id"]}
             />
           ))}
         </ScrollView>
@@ -90,9 +89,9 @@ const Lista = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.scrollGroupActivoScrollViewContent}
         >
-          <ContentRow9 />
-          <ContentRow8 />
-          <ContentRow8 />
+          <ContentRow />
+          <ContentRow />
+          <ContentRow />
         </ScrollView>
       );
     } else if (selectedTab === "Finalizado") {
@@ -103,7 +102,7 @@ const Lista = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.scrollGroupActivoScrollViewContent}
         >
-          <ContentRow9 />
+          <ContentRow />
         </ScrollView>
       );
     }
@@ -130,6 +129,21 @@ const Lista = () => {
               Contratos
             </Text>
           </View>
+
+          <View style={[styles.rightActions, styles.contentFlexBox]}>
+            <TouchableOpacity
+              style={styles.leftAction}
+              activeOpacity={0.2}
+              onPress={handleRefresh}
+            >
+              <Image
+                style={styles.icon}
+                contentFit="cover"
+                source={require("../assets/reload.png")}
+              />
+            </TouchableOpacity>
+          </View>
+
           <View style={[styles.rightActions, styles.contentFlexBox]}>
             <TouchableOpacity
               style={styles.leftAction}
@@ -253,6 +267,11 @@ const styles = StyleSheet.create({
   rowTypo: {
     fontFamily: FontFamily.paragraphRegularSmall,
     textAlign: "left",
+  },
+  image2Icon: {
+    width: 71,
+    height: 33,
+    marginLeft: 4,
   },
   imagePosition: {
     left: 0,

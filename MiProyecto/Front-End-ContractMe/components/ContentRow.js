@@ -1,18 +1,33 @@
 import * as React from "react";
-import { StyleProp, ViewStyle, StyleSheet, View, Text } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+} from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from "@react-navigation/native";
 import { FontFamily, Color, Border, FontSize, Padding } from "../GlobalStyles";
 
-const ContentRow = ({ style }) => {
+const ContentRow9 = ({ titulo, fechaInicio, fechaFin, id }) => {
+  const navigation = useNavigation();
+
   return (
-    <View style={[styles.contentRow, style, styles.contentFlexBox]}>
+    <TouchableOpacity
+      style={[styles.contentRow, styles.contentFlexBox]}
+      activeOpacity={0.2}
+      onPress={() =>
+        navigation.navigate("Firmar", { idContrato: id.toString() })
+      }
+    >
       <View style={[styles.content, styles.contentFlexBox]}>
         <View style={styles.imageGroup}>
           <Image
             style={[styles.imageIcon, styles.imagePosition]}
             contentFit="cover"
-            source={require("../assets/image1.png")}
+            source={require("../assets/image.png")}
           />
           <View style={[styles.imageBlurEffect, styles.imagePosition]} />
           <LinearGradient
@@ -22,19 +37,19 @@ const ContentRow = ({ style }) => {
           />
         </View>
         <View style={styles.copy}>
-          <Text style={styles.rowHeadline}>Titulo Contrato</Text>
+          <Text style={styles.rowHeadline}>{titulo}</Text>
           <Text style={[styles.rowDescription, styles.rowTypo]}>
-            Fecha Inicio-Fecha Fin
+            {fechaInicio}-{fechaFin}
           </Text>
-          <Text style={[styles.rowHelperText, styles.rowTypo]}>Firmado</Text>
+          <Text style={[styles.rowHelperText, styles.rowTypo]}>Activo</Text>
         </View>
       </View>
       <Image
         style={styles.arrowRightIcon}
         contentFit="cover"
-        source={require("../assets/arrowright1.png")}
+        source={require("../assets/arrowright.png")}
       />
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -94,7 +109,7 @@ const styles = StyleSheet.create({
   rowHelperText: {
     fontSize: FontSize.paragraphRegularSmall_size,
     lineHeight: 20,
-    color: Color.colorMediumblue,
+    color: Color.colorLimegreen,
   },
   copy: {
     justifyContent: "center",
@@ -119,4 +134,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ContentRow;
+export default ContentRow9;

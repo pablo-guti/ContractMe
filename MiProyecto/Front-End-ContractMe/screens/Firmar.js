@@ -1,8 +1,4 @@
-import "../global";
-import "react-native-get-random-values";
-import React, { useState, useEffect } from "react";
-import Web3 from "web3";
-import MyContract from "../contracts/MyContract.json";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -10,113 +6,65 @@ import {
   TouchableOpacity,
   Text,
   ScrollView,
-  TextInput,
 } from "react-native";
 import { Image } from "expo-image";
-import { Datepicker as RNKDatepicker } from "@ui-kitten/components";
+import Web3 from "web3";
+import MyContract from "../contracts/MyContract.json";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Color, FontFamily, FontSize, Padding, Border } from "../GlobalStyles";
 
-const getContract = async (web3) => {
-  const networkID = await web3.eth.net.getId();
-  const network = MyContract.networks[networkID];
-  return new web3.eth.Contract(MyContract.abi, network && network.address);
-};
+const Firmar = ({ route }) => {
+  const navigation = useNavigation();
+  const { idContrato } = route.params;
 
-const NuevoContrato = () => {
   /****************************************************************************************/
   /*Conexión con blockchain y obtención del contrato*/
 
-  const [account, setAccount] = useState();
-  const [MyContract, setMyContract] = useState();
+  const [titulo, setTitulo] = useState("");
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
+  const [precio, setPrecio] = useState("");
+  const [descripcion, setDescripcion] = useState("");
 
-  useEffect(() => {
-    const connectToBlockchain = async () => {
-      try {
-        //Conexión con la blockchain
-        const web3 = new Web3(
-          new Web3.providers.HttpProvider("http://192.168.1.35:7545")
-        );
-        const accounts = await web3.eth.getAccounts();
-        const ownerAdress = accounts[0];
-        const contract = await getContract(web3);
-        setAccount(ownerAdress);
-        setMyContract(contract);
-      } catch (error) {
-        console.error("Error al conectar a la blockchain:", error);
-        // Agregar más información sobre el error
-        console.error("Error detallado:", error.message);
-      }
-    };
+  const connectToBlockchain = useCallback(async () => {
+    try {
+      const web3 = new Web3(
+        new Web3.providers.HttpProvider("http://192.168.1.35:7545")
+      );
+      const accounts = await web3.eth.getAccounts();
+      const ownerAddress = accounts[0];
+      const networkID = await web3.eth.net.getId();
+      const network = MyContract.networks[networkID];
+      const contract = new web3.eth.Contract(
+        MyContract.abi,
+        network && network.address
+      );
+      const contractsReturned = await contract.methods.getAllContracts().call();
 
-    connectToBlockchain();
+      //Filtrar en busca de un contrato en concreto
+      const contrato = contractsReturned.find(
+        (c) => c.id === BigInt(idContrato)
+      );
+      setTitulo(contrato["titulo"]);
+      setFechaInicio(contrato["fechaInicio"]);
+      setFechaFin(contrato["fechaFin"]);
+      setPrecio(contrato["precio"].toString());
+      setDescripcion(contrato["descripcion"]);
+    } catch (error) {
+      console.error("Error detallado:", error.message);
+    }
   }, []);
 
+  useEffect(() => {
+    connectToBlockchain();
+  }, [connectToBlockchain]);
   /**********************************************************************************/
 
-  const [baseInputFieldDatePicker, setBaseInputFieldDatePicker] =
-    useState(undefined);
-  const [baseInputFieldDatePicker1, setBaseInputFieldDatePicker1] =
-    useState(undefined);
-
-  const navigation = useNavigation();
-
-  const [formData, setFormData] = useState({
-    tituloContrato: "",
-    fechaInicio: "",
-    fechaFin: "",
-    precio: "",
-    descripcionContrato: "",
-  });
-
-  //Actualiza el estado de los textos
-  const handleInputChangeText = (key, value) => {
-    setFormData({ ...formData, [key]: value });
-  };
-
-  //Actualiza el estado de las fechas
-  const handleDateChange = (date, fieldName) => {
-    // Convertir la fecha en string
-    const dateString = date.toLocaleDateString();
-
-    if (fieldName == "fechaInicio") {
-      setBaseInputFieldDatePicker(date);
-    } else if (fieldName == "fechaFin") {
-      setBaseInputFieldDatePicker1(date);
-    }
-    // Actualizar el estado de formData con la nueva fecha
-    setFormData({
-      ...formData,
-      [fieldName]: dateString,
-    });
-  };
-
-  async function handleCreateContract() {
-    try {
-      const precioEnWei = Web3.utils.toWei(formData.precio, "ether");
-      await MyContract.methods
-        .crearContrato(
-          formData.tituloContrato,
-          formData.descripcionContrato,
-          precioEnWei,
-          formData.fechaInicio,
-          formData.fechaFin
-        )
-        .send({ from: account, gas: "1000000" });
-      console.log("Contrato Creado");
-      window.alert("Contrato creado");
-      navigation.navigate("Lista");
-    } catch (error) {
-      console.error("Error al crear el contrato", error);
-      window.alert("Eror al crear el contrato");
-    }
-  }
-
   return (
-    <View style={styles.nuevoContrato}>
-      <View style={[styles.statusBar, styles.barFlexBox]} />
-      <View style={[styles.navigationBar, styles.scrollGroupSpaceBlock]}>
+    <View style={[styles.firmar, styles.firmarFlexBox]}>
+      <View style={[styles.statusBar, styles.barLayout]} />
+      <View style={[styles.navigationBar, styles.barLayout]}>
         <View style={styles.largeTitleBar}>
           <TouchableOpacity
             style={styles.arrowLeft}
@@ -129,89 +77,88 @@ const NuevoContrato = () => {
               source={require("../assets/arrowleft1.png")}
             />
           </TouchableOpacity>
-          <View style={styles.largeTitleGrp}>
-            <Text style={styles.pageTitle}>Nuevo Contrato</Text>
+          <View style={styles.frame}>
+            <Text style={[styles.pageTitle, styles.label1FlexBox]}>
+              Titulo Contrato
+            </Text>
+            <Text style={[styles.pageSubtitle, styles.inputTypo]}>
+              Propietario: 0x.....
+            </Text>
           </View>
         </View>
       </View>
       <ScrollView
-        style={[styles.scrollGroup, styles.scrollGroupSpaceBlock]}
+        style={styles.scrollGroup}
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollGroupScrollViewContent}
       >
-        <View style={[styles.frame, styles.frameSpaceBlock]}>
+        <View style={[styles.frame1, styles.frameSpaceBlock]}>
           <View style={styles.textInput}>
             <View style={styles.label}>
               <Text style={[styles.label1, styles.label1Typo]}>
                 Titulo Contrato
               </Text>
             </View>
-            <TextInput
-              style={[styles.baseInputField, styles.baseSpaceBlock]}
-              onChangeText={(text) =>
-                handleInputChangeText("tituloContrato", text)
-              }
-            />
+            <View style={[styles.baseInputField, styles.baseSpaceBlock]}>
+              <Text style={[styles.inputPlaceholder, styles.inputTypo]}>
+                {titulo}
+              </Text>
+            </View>
           </View>
         </View>
-        <View style={[styles.frame1, styles.frameFlexBox]}>
+        <View style={[styles.frame2, styles.frameFlexBox]}>
           <View style={styles.textInput}>
             <View style={styles.label}>
               <Text style={[styles.label1, styles.label1Typo]}>
                 Fecha inicio
               </Text>
             </View>
-            <RNKDatepicker
-              style={styles.baseInputField1}
-              date={baseInputFieldDatePicker}
-              controlStyle={styles.baseInputFieldDatePickerValue}
-              onSelect={(date) => handleDateChange(date, "fechaInicio")}
-            />
+            <View style={[styles.baseInputField1, styles.baseSpaceBlock]}>
+              <Text style={[styles.inputPlaceholder, styles.inputTypo]}>
+                {fechaInicio}
+              </Text>
+            </View>
           </View>
         </View>
-        <View style={[styles.frame1, styles.frameFlexBox]}>
+        <View style={[styles.frame2, styles.frameFlexBox]}>
           <View style={styles.textInput}>
             <View style={styles.label}>
               <Text style={[styles.label1, styles.label1Typo]}>Fecha fin</Text>
             </View>
-            <RNKDatepicker
-              style={styles.baseInputField1}
-              date={baseInputFieldDatePicker1}
-              onSelect={(date) => handleDateChange(date, "fechaFin")}
-              controlStyle={styles.baseInputFieldDatePicker1Value}
-            />
+            <View style={[styles.baseInputField1, styles.baseSpaceBlock]}>
+              <Text style={[styles.inputPlaceholder, styles.inputTypo]}>
+                {fechaFin}
+              </Text>
+            </View>
           </View>
         </View>
-        <View style={[styles.frame1, styles.frameFlexBox]}>
+        <View style={[styles.frame2, styles.frameFlexBox]}>
           <View style={styles.textInput}>
             <View style={styles.label}>
               <Text style={[styles.label1, styles.label1Typo]}>
                 Precio (ETH)
               </Text>
             </View>
-            <TextInput
-              style={[styles.baseInputField3, styles.baseSpaceBlock]}
-              keyboardType="number-pad"
-              onChangeText={(text) => handleInputChangeText("precio", text)}
-            />
+            <View style={[styles.baseInputField1, styles.baseSpaceBlock]}>
+              <Text style={[styles.inputPlaceholder, styles.inputTypo]}>
+                {precio}
+              </Text>
+            </View>
           </View>
         </View>
-        <View style={[styles.frame4, styles.frameFlexBox]}>
+        <View style={[styles.frame5, styles.frameFlexBox]}>
           <View style={styles.textInput4}>
             <View style={styles.label}>
               <Text style={[styles.label1, styles.label1Typo]}>
                 Descripcion del contrato
               </Text>
             </View>
-            <TextInput
-              style={[styles.baseInputField4, styles.baseSpaceBlock]}
-              multiline={true}
-              secureTextEntry={false}
-              onChangeText={(text) =>
-                handleInputChangeText("descripcionContrato", text)
-              }
-            />
+            <View style={[styles.baseInputField4, styles.baseSpaceBlock]}>
+              <Text style={[styles.inputPlaceholder4, styles.inputTypo]}>
+                {descripcion}
+              </Text>
+            </View>
           </View>
         </View>
         <View style={[styles.frame5, styles.frameFlexBox]}>
@@ -220,9 +167,9 @@ const NuevoContrato = () => {
             locations={[0, 1]}
             colors={["#9b40bf", "#f344f7"]}
           >
-            <Pressable style={styles.pressable} onPress={handleCreateContract}>
+            <Pressable style={styles.pressable}>
               <Text style={[styles.buttonText, styles.label1Typo]}>
-                Crear Contrato
+                Firmar Contrato
               </Text>
             </Pressable>
           </LinearGradient>
@@ -233,8 +180,6 @@ const NuevoContrato = () => {
 };
 
 const styles = StyleSheet.create({
-  baseInputFieldDatePickerValue: {},
-  baseInputFieldDatePicker1Value: {},
   scrollGroupScrollViewContent: {
     flexDirection: "column",
     paddingHorizontal: 15,
@@ -242,14 +187,24 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     justifyContent: "flex-start",
   },
-  barFlexBox: {
-    backgroundColor: Color.blurLight,
-    justifyContent: "center",
+  firmarFlexBox: {
     alignItems: "center",
+    justifyContent: "center",
   },
-  scrollGroupSpaceBlock: {
-    marginTop: 13,
-    alignSelf: "stretch",
+  barLayout: {
+    width: 390,
+    backgroundColor: Color.blurLight,
+  },
+  label1FlexBox: {
+    textAlign: "left",
+    color: Color.fontWhite,
+  },
+  inputTypo: {
+    fontFamily: FontFamily.paragraphRegularSmall,
+    lineHeight: 24,
+    fontSize: FontSize.header6_size,
+    textAlign: "left",
+    color: Color.fontWhite,
   },
   frameSpaceBlock: {
     paddingVertical: 0,
@@ -259,15 +214,15 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.paragraphMediumLarge,
     fontWeight: "500",
     lineHeight: 24,
-    fontSize: FontSize.paragraphMediumLarge_size,
+    fontSize: FontSize.header6_size,
   },
   baseSpaceBlock: {
+    marginTop: 4,
     paddingVertical: Padding.p_xs,
     paddingHorizontal: Padding.p_base,
     borderWidth: 1.5,
     borderColor: Color.colorGray_100,
     borderStyle: "solid",
-    marginTop: 4,
     flexDirection: "row",
     alignSelf: "stretch",
     alignItems: "center",
@@ -279,9 +234,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   statusBar: {
-    width: 390,
     height: 37,
     alignSelf: "stretch",
+    justifyContent: "center",
+    alignItems: "center",
   },
   icon: {
     height: "100%",
@@ -297,10 +253,12 @@ const styles = StyleSheet.create({
     lineHeight: 32,
     fontWeight: "600",
     fontFamily: FontFamily.header6,
-    textAlign: "center",
-    color: Color.fontWhite,
+    alignSelf: "stretch",
   },
-  largeTitleGrp: {
+  pageSubtitle: {
+    alignSelf: "stretch",
+  },
+  frame: {
     marginLeft: 4,
     justifyContent: "center",
     flex: 1,
@@ -316,11 +274,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   navigationBar: {
-    height: 64,
+    marginTop: 13,
     overflow: "hidden",
-    backgroundColor: Color.blurLight,
-    justifyContent: "center",
-    alignItems: "center",
   },
   label1: {
     textAlign: "left",
@@ -330,9 +285,12 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     justifyContent: "center",
   },
+  inputPlaceholder: {
+    flex: 1,
+  },
   baseInputField: {
-    marginTop: 4,
     height: 50,
+    marginTop: 4,
     paddingVertical: Padding.p_xs,
     paddingHorizontal: Padding.p_base,
     borderWidth: 1.5,
@@ -343,7 +301,7 @@ const styles = StyleSheet.create({
   textInput: {
     alignSelf: "stretch",
   },
-  frame: {
+  frame1: {
     paddingHorizontal: Padding.p_mini,
     height: 83,
     paddingVertical: 0,
@@ -351,17 +309,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   baseInputField1: {
-    marginTop: 4,
-  },
-  frame1: {
-    paddingVertical: 0,
-    alignItems: "center",
-    paddingHorizontal: Padding.p_mini,
-    height: 83,
-  },
-  baseInputField3: {
-    marginTop: 4,
     height: 50,
+    marginTop: 4,
     paddingVertical: Padding.p_xs,
     paddingHorizontal: Padding.p_base,
     borderWidth: 1.5,
@@ -370,8 +319,18 @@ const styles = StyleSheet.create({
     borderRadius: Border.br_81xl,
     overflow: "hidden",
   },
+  frame2: {
+    paddingVertical: 0,
+    alignItems: "center",
+    paddingHorizontal: Padding.p_mini,
+    height: 83,
+  },
+  inputPlaceholder4: {
+    alignSelf: "stretch",
+    flex: 1,
+  },
   baseInputField4: {
-    borderRadius: 20,
+    borderRadius: Border.br_xl,
     marginTop: 4,
     paddingVertical: Padding.p_xs,
     paddingHorizontal: Padding.p_base,
@@ -385,11 +344,11 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     flex: 1,
   },
-  frame4: {
-    height: 205,
-    paddingHorizontal: Padding.p_3xs,
-    paddingVertical: 0,
-    alignItems: "center",
+  frame5: {
+    paddingHorizontal: Padding.p_xl,
+    paddingVertical: Padding.p_mini,
+    overflow: "hidden",
+    flex: 1,
   },
   buttonText: {
     color: Color.monochromatic10,
@@ -411,16 +370,18 @@ const styles = StyleSheet.create({
   baseButton: {
     height: 73,
   },
-  frame5: {
+  frame6: {
     paddingHorizontal: Padding.p_xl,
     paddingVertical: Padding.p_mini,
     overflow: "hidden",
     flex: 1,
   },
   scrollGroup: {
+    marginTop: 13,
+    alignSelf: "stretch",
     flex: 1,
   },
-  nuevoContrato: {
+  firmar: {
     shadowColor: "rgba(180, 188, 203, 0.24)",
     shadowOffset: {
       width: 0,
@@ -431,11 +392,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     height: 813,
     justifyContent: "center",
-    alignItems: "center",
     width: "100%",
     backgroundColor: Color.monochromatic10,
+    alignItems: "center",
     flex: 1,
   },
 });
 
-export default NuevoContrato;
+export default Firmar;
