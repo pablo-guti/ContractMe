@@ -31,6 +31,6 @@ await myContract.operacion_deseada();
 4. Ejecuta `npx expo start` en la terminal y deesde ExpoGo escanear el código QR que aparece
 
 
-A tener en cuenta: Por el momento la dirección por defecto para concectarse a Ganache es http://192.168.1.35:7545 y es necesario indicarlo en todos los archivos donde aparece esta dorección de manera hardcodeada, pero estoy trabajando en encontrar una solución para que esto sea mas "configurable"
+- [ ] A tener en cuenta: Por el momento la dirección por defecto para concectarse a Ganache es http://192.168.1.35:7545 y es necesario indicarlo en todos los archivos donde aparece esta dorección de manera hardcodeada, pero estoy trabajando en encontrar una solución para que esto sea mas "configurable"
 
 
