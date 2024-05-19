@@ -27,8 +27,10 @@ await myContract.operacion_deseada();
 
 1. Abre la carpeta del proyecto en **Visual Studio Code**, en este caso hay que dirigirse a la carpeta /Front-End-Contractme.
 2. Ejecuta `npm install` en la terminal.
-3. Ejecuta `npx expo start` en la terminal.
-4. El puerto por defecto es 192.161.1.35
+3. Instalar ExpoGo en el dispositivo Android/IOS
+4. Ejecuta `npx expo start` en la terminal y deesde ExpoGo escanear el código QR que aparece
+
+
 
 
 
