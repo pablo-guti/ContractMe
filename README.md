@@ -8,20 +8,21 @@ Para compilar y  desplegar el contrato ejecutar
 truffle compile
 truffle migrate 
 ```
-Para poder interactuar con el contrato en necesario Ganache GUI 
+Para poder interactuar con el contrato en necesario que Ganache Gui este corriendo en el mismo puerto que se indiue en el archivo /truffle-config.js
 
-Una vez desplegado el contrato se puede interactuar con el desde la consola ejecutando
+Aparecera el siguiente error al migrar el contrato a la red:
+```
+This version of µWS is not compatible with your Node.js build:
 
+Error: Cannot find module '../binaries/uws_win32_x64_120.node'''
 ```
-truffle console
-```
+Este error no es relevante, simplemte ignorarlo
 
-Un ejemplo sería el siguiente
 
-```
-const myContract = await MyContract.deployed();
-await myContract.operacion_deseada();
-```
+
+
+
+
 
 ## Para previsualizar y ejecutar el proyecto en tu dispositivo:
 
