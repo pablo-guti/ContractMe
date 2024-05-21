@@ -7,6 +7,8 @@ Lo primero es instalar truffe de manera global
 npm install -g truffle
 ```
 Además hay que instalar ganache desde este enlace https://archive.trufflesuite.com/ganache/
+
+
 Para compilar y  desplegar el contrato ejecutar
 
 ```
@@ -15,7 +17,7 @@ truffle migrate
 ```
 Para poder interactuar con el contrato en necesario que Ganache Gui este corriendo en el mismo puerto que se indiue en el archivo /truffle-config.js
 
-Aparecera el siguiente error al migrar el contrato a la red:
+**Nota:** Aparecera el siguiente error al migrar el contrato a la red:
 ```
 This version of µWS is not compatible with your Node.js build:
 
@@ -24,7 +26,7 @@ Error: Cannot find module '../binaries/uws_win32_x64_120.node'''
 Este error no es relevante, simplemte ignorarlo
 
 
-
+Una vez compilado el contraro se generará un archivo .json en /build/contracts. Coger ese archivo y pegarlo en la ruta /Front-End-ContractMe/contracts. **Este paso es muy importante**
 
 
 
