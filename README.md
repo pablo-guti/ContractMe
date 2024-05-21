@@ -26,7 +26,7 @@ Error: Cannot find module '../binaries/uws_win32_x64_120.node'''
 Este error no es relevante, simplemte ignorarlo
 
 
-Una vez compilado el contraro se generará un archivo .json en /build/contracts. Coger ese archivo y pegarlo en la ruta /Front-End-ContractMe/contracts. **Este paso es muy importante**
+- Una vez compilado el contraro se generará un archivo .json en /build/contracts. Coger ese archivo y pegarlo en la ruta /Front-End-ContractMe/contracts. **Este paso es muy importante**
 
 
 
@@ -35,10 +35,10 @@ Una vez compilado el contraro se generará un archivo .json en /build/contracts.
 
 1. Abre la carpeta del proyecto en **Visual Studio Code**, en este caso hay que dirigirse a la carpeta /Front-End-Contractme.
 2. Ejecuta `npm install` en la terminal. Tener en cuenta que la version de node que estoy utilizando es la 21.7.1
-3. Instalar ExpoGo en el dispositivo Android/IOS
+3. Instalar ExpoGo en el dispositivo Android/IOS. **Muy importante**: Instalar la version 50 de Expo Go desde su página oficial https://expo.dev/go
 4. Ejecuta `npx expo start` en la terminal y deesde ExpoGo escanear el código QR que aparece
 
 
-- [ ] A tener en cuenta: Por el momento la dirección por defecto para concectarse a Ganache es http://192.168.1.35:7545 y es necesario indicarlo en todos los archivos donde aparece esta dorección de manera hardcodeada, pero estoy trabajando en encontrar una solución para que esto sea mas "configurable"
+**-Npata**: La dirección por defecto para concectarse a Ganache es http://192.168.1.35:7545, pero se puede cambiar si es necesarios desde el archivo de configuración situado en Front-End-ContractMe/global.js
 
 
