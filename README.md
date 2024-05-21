@@ -15,7 +15,7 @@ Para compilar y  desplegar el contrato ejecutar
 truffle compile
 truffle migrate 
 ```
-Para poder interactuar con el contrato en necesario que Ganache Gui este corriendo en el mismo puerto que se indiue en el archivo /truffle-config.js
+Para poder interactuar con el contrato en necesario que Ganache Gui este corriendo en el mismo puerto que se indica en el archivo /truffle-config.js
 
 **Nota:** Aparecera el siguiente error al migrar el contrato a la red:
 ```
