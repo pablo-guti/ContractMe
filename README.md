@@ -39,6 +39,6 @@ Este error no es relevante, simplemte ignorarlo
 4. Ejecuta `npx expo start` en la terminal y deesde ExpoGo escanear el código QR que aparece
 
 
-**-Npata**: La dirección por defecto para concectarse a Ganache es http://192.168.1.35:7545, pero se puede cambiar si es necesarios desde el archivo de configuración situado en Front-End-ContractMe/global.js
+**-Nota**: La dirección por defecto para concectarse a Ganache es http://192.168.1.35:7545, pero se puede cambiar si es necesarios desde el archivo de configuración situado en Front-End-ContractMe/global.js
 
 
