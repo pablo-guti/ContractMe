@@ -2,6 +2,11 @@
 
 ## Compilar y desplegar contratos
 
+Lo primero es instalar truffe de manera global
+```
+npm install -g truffle
+```
+Además hay que instalar ganache desde este enlace https://archive.trufflesuite.com/ganache/
 Para compilar y  desplegar el contrato ejecutar
 
 ```
