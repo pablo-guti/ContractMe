@@ -11,7 +11,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { FontFamily, Color, Border, FontSize, Padding } from "../GlobalStyles";
 
-const ContentRow9 = ({ titulo, fechaInicio, fechaFin, id }) => {
+const ContentRowContratoParaFirmar = ({
+  titulo,
+  fechaInicio,
+  fechaFin,
+  id,
+  account,
+}) => {
   const navigation = useNavigation();
 
   return (
@@ -19,7 +25,10 @@ const ContentRow9 = ({ titulo, fechaInicio, fechaFin, id }) => {
       style={[styles.contentRow, styles.contentFlexBox]}
       activeOpacity={0.2}
       onPress={() =>
-        navigation.navigate("Firmar", { idContrato: id.toString() })
+        navigation.navigate("Firmar", {
+          idContrato: id.toString(),
+          userAccount: account,
+        })
       }
     >
       <View style={[styles.content, styles.contentFlexBox]}>
@@ -41,7 +50,6 @@ const ContentRow9 = ({ titulo, fechaInicio, fechaFin, id }) => {
           <Text style={[styles.rowDescription, styles.rowTypo]}>
             {fechaInicio}-{fechaFin}
           </Text>
-          <Text style={[styles.rowHelperText, styles.rowTypo]}>Activo</Text>
         </View>
       </View>
       <Image
@@ -134,4 +142,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ContentRow9;
+export default ContentRowContratoParaFirmar;

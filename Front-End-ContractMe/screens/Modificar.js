@@ -15,9 +15,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Color, FontFamily, FontSize, Padding, Border } from "../GlobalStyles";
 
-const Firmar = ({ route }) => {
+const Modificar = ({ route }) => {
   const navigation = useNavigation();
-  const { idContrato, userAccount } = route.params;
+  const { idContrato, account } = route.params;
 
   /****************************************************************************************/
   /*Conexión con blockchain y obtención del contrato*/
@@ -27,7 +27,6 @@ const Firmar = ({ route }) => {
   const [fechaFin, setFechaFin] = useState("");
   const [precio, setPrecio] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [account, setAccount] = useState("");
 
   const connectToBlockchain = useCallback(async () => {
     try {
@@ -41,10 +40,6 @@ const Firmar = ({ route }) => {
         network && network.address
       );
       const contractsReturned = await contract.methods.getAllContracts().call();
-
-      // Obtener la dirección del propietario del contrato
-      const owner = await contract.methods.getOwner(idContrato).call();
-      setAccount(owner);
 
       //Filtrar en busca de un contrato en concreto
       const contrato = contractsReturned.find(
@@ -73,7 +68,7 @@ const Firmar = ({ route }) => {
           <TouchableOpacity
             style={styles.arrowLeft}
             activeOpacity={0.2}
-            onPress={() => navigation.navigate("Lista", { userAccount })}
+            onPress={() => navigation.navigate("Lista", { account })}
           >
             <Image
               style={styles.icon}
@@ -83,7 +78,7 @@ const Firmar = ({ route }) => {
           </TouchableOpacity>
           <View style={styles.frame}>
             <Text style={[styles.pageTitle, styles.label1FlexBox]}>
-              Firmar Contrato
+              Modificación de Contrato
             </Text>
           </View>
         </View>
@@ -170,7 +165,9 @@ const Firmar = ({ route }) => {
             colors={["#9b40bf", "#f344f7"]}
           >
             <Pressable style={styles.pressable}>
-              <Text style={[styles.buttonText, styles.label1Typo]}>Firmar</Text>
+              <Text style={[styles.buttonText, styles.label1Typo]}>
+                Guardar Cambios
+              </Text>
             </Pressable>
           </LinearGradient>
         </View>
@@ -409,4 +406,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Firmar;
+export default Modificar;

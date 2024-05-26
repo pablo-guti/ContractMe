@@ -6,10 +6,10 @@ import React, { useState, useEffect, createContext } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import PantallaInicial from "./screens/PantallaInicial";
-import Info from "./screens/Info";
 import Lista from "./screens/Lista";
 import SignIn from "./screens/SignIn";
 import Firmar from "./screens/Firmar";
+import Modificar from "./screens/Modificar";
 import NuevoContrato from "./screens/NuevoContrato";
 import MIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import { IconRegistry, ApplicationProvider } from "@ui-kitten/components";
@@ -119,13 +119,13 @@ const App = () => {
                 listeners={{ focus: () => refreshLista() }}
               />
               <Stack.Screen
-                name="Info"
-                component={Info}
+                name="Firmar"
+                component={Firmar}
                 options={{ headerShown: false }}
               />
               <Stack.Screen
-                name="Firmar"
-                component={Firmar}
+                name="Modificar"
+                component={Modificar}
                 options={{ headerShown: false }}
               />
             </Stack.Navigator>

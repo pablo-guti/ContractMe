@@ -92,7 +92,7 @@ const NuevoContrato = ({ route }) => {
 
   async function handleCreateContract() {
     try {
-      const precioEnWei = Web3.utils.toWei(formData.precio, "ether");
+      const precioEnWei = Web3.utils.toWei(formData.precio, "wei");
       await MyContract.methods
         .crearContrato(
           formData.tituloContrato,

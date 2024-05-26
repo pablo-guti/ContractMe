@@ -56,6 +56,15 @@ const SignIn = () => {
     navigation.navigate("SignIn");
   };
 
+  const handleClearAll = async () => {
+    try {
+      await AsyncStorage.clear();
+      console.log("Todos los ítems eliminados");
+    } catch (error) {
+      console.error("Error al eliminar todos los ítems", error);
+    }
+  };
+
   return (
     <View style={styles.signIn}>
       <View style={styles.frame}>
@@ -127,6 +136,14 @@ const SignIn = () => {
             onPress={handleRegister}
           >
             <Text style={styles.iniciarSesion1}>Registrarse</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.fieldFlexBox]}
+            activeOpacity={0.2}
+            onPress={handleClearAll}
+          >
+            <Text style={styles.iniciarSesion1}>Clear All</Text>
           </TouchableOpacity>
         </View>
       </View>

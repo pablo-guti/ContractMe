@@ -13,14 +13,17 @@ import Web3 from "web3";
 import MyContract from "../contracts/MyContract.json";
 import { Image } from "expo-image";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import ContentRow from "../components/ContentRow";
+import ContentRowContratoPropio from "../components/ContentRowContratoPropio";
+import ContentRowContratoParaFirmar from "../components/ContentRowContratoParaFirmar";
 import { FontFamily, Color, Padding, Border, FontSize } from "../GlobalStyles";
 
 const Lista = ({ route }) => {
   /****************************************************************************************/
   /*Conexión con blockchain y obtención del contrato*/
 
-  const [contracts, setContracts] = useState([]);
+  const { account } = route.params;
+  const [contractsToSign, setContractsToSign] = useState([]);
+  const [ownerContracts, setOwnerContracts] = useState([]);
   const [refresh, setRefresh] = useState(false); // Nuevo estado para la recarga
 
   const connectToBlockchain = useCallback(async () => {
@@ -34,8 +37,27 @@ const Lista = ({ route }) => {
         MyContract.abi,
         network && network.address
       );
-      const contractsReturned = await contract.methods.getAllContracts().call();
-      setContracts(contractsReturned);
+
+      try {
+        //All Contracts
+        const contractsToSign = await contract.methods
+          .getAllContractsToSign(account)
+          .call();
+        setContractsToSign(contractsToSign);
+      } catch (error) {
+        setContractsToSign([]);
+      }
+
+      try {
+        //Owner Contracts
+        const ownerContracts = await contract.methods
+          .getAllContractsByOwner(account)
+          .call();
+
+        setOwnerContracts(ownerContracts);
+      } catch (error) {
+        setOwnerContracts([]);
+      }
     } catch (error) {
       console.error("Error al conectar a la blockchain:", error);
       console.error("Error detallado:", error.message);
@@ -49,61 +71,78 @@ const Lista = ({ route }) => {
 
   const navigation = useNavigation();
   const [selectedTab, setSelectedTab] = useState("Mis Contratos");
-  const { account } = route.params;
 
   const handleRefresh = () => {
     // Cambiar el estado para forzar una recarga
     setRefresh((prevState) => !prevState);
-    console.log(account);
   };
 
   const renderScrollView = () => {
-    if (!contracts.length) {
-      return null; // No renderizar nada si los contratos aún no están disponibles
-    }
-
-    if (selectedTab === "Mis Contratos") {
+    try {
+      // Renderizado según la pestaña seleccionada
+      if (selectedTab === "Mis Contratos") {
+        if (ownerContracts.length === 0) {
+          throw new Error("Aun no has creado ningún contrato");
+        }
+        return (
+          <ScrollView
+            style={styles.scrollGroupActivo}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.scrollGroupActivoScrollViewContent}
+          >
+            {ownerContracts.map((contract, index) => (
+              <ContentRowContratoPropio
+                key={index}
+                titulo={contract["titulo"]}
+                fechaInicio={contract["fechaInicio"]}
+                fechaFin={contract["fechaFin"]}
+                id={contract["id"]}
+                account={account}
+              />
+            ))}
+          </ScrollView>
+        );
+      } else if (selectedTab === "Para firmar") {
+        if (contractsToSign.length === 0) {
+          throw new Error("Aun no existen contratos para poder firmar");
+        }
+        return (
+          <ScrollView
+            style={styles.scrollGroupActivo}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.scrollGroupActivoScrollViewContent}
+          >
+            {contractsToSign.map((contract, index) => (
+              <ContentRowContratoParaFirmar
+                key={index}
+                titulo={contract["titulo"]}
+                fechaInicio={contract["fechaInicio"]}
+                fechaFin={contract["fechaFin"]}
+                id={contract["id"]}
+                account={account}
+              />
+            ))}
+          </ScrollView>
+        );
+      } else if (selectedTab === "Finalizado") {
+        return (
+          <ScrollView
+            style={styles.scrollGroupActivo}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.scrollGroupActivoScrollViewContent}
+          >
+            <ContentRowContratoParaFirmar />
+          </ScrollView>
+        );
+      }
+    } catch (error) {
       return (
-        <ScrollView
-          style={styles.scrollGroupActivo}
-          showsVerticalScrollIndicator={false}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.scrollGroupActivoScrollViewContent}
-        >
-          {contracts.map((contract, index) => (
-            <ContentRow
-              key={index}
-              titulo={contract["titulo"]}
-              fechaInicio={contract["fechaInicio"]}
-              fechaFin={contract["fechaFin"]}
-              id={contract["id"]}
-            />
-          ))}
-        </ScrollView>
-      );
-    } else if (selectedTab === "Para firmar") {
-      return (
-        <ScrollView
-          style={styles.scrollGroupActivo}
-          showsVerticalScrollIndicator={false}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.scrollGroupActivoScrollViewContent}
-        >
-          <ContentRow />
-          <ContentRow />
-          <ContentRow />
-        </ScrollView>
-      );
-    } else if (selectedTab === "Finalizado") {
-      return (
-        <ScrollView
-          style={styles.scrollGroupActivo}
-          showsVerticalScrollIndicator={false}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.scrollGroupActivoScrollViewContent}
-        >
-          <ContentRow />
-        </ScrollView>
+        <View style={styles.noContractsContainer}>
+          <Text style={styles.noContractsText}>{error.message}</Text>
+        </View>
       );
     }
   };
@@ -471,6 +510,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "100%",
     backgroundColor: Color.monochromatic10,
+  },
+  noContractsContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  noContractsText: {
+    fontSize: 16,
+    color: "gray",
   },
 });
 
