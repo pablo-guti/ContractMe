@@ -19,8 +19,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Color, FontFamily, FontSize, Padding, Border } from "../GlobalStyles";
 
-// Tasa de conversión fija de EUR a ETH (esto normalmente debería obtenerse de una API)
-const EUR_TO_ETH_RATE = 0.00042; // Ejemplo: 1 EUR = 0.00042 ETH
+const EUR_TO_ETH_RATE = 0.00028; // Ejemplo: 1 EUR = 0.00042 ETH
 
 const getContract = async (web3) => {
   const networkID = await web3.eth.net.getId();
@@ -31,6 +30,8 @@ const getContract = async (web3) => {
 const NuevoContrato = ({ route }) => {
   const [MyContract, setMyContract] = useState();
 
+  /****************************************************************************************/
+  /*Conexión con blockchain y obtención del contrato*/
   useEffect(() => {
     const connectToBlockchain = async () => {
       try {
@@ -48,30 +49,37 @@ const NuevoContrato = ({ route }) => {
     connectToBlockchain();
   }, []);
 
+  /****************************************************************************************/
+
   const [baseInputFieldDatePicker, setBaseInputFieldDatePicker] =
-    useState(undefined);
+    useState(null);
   const [baseInputFieldDatePicker1, setBaseInputFieldDatePicker1] =
-    useState(undefined);
+    useState(null);
 
   const navigation = useNavigation();
   const { account } = route.params;
 
   const [formData, setFormData] = useState({
     tituloContrato: "",
-    fechaInicio: "",
-    fechaFin: "",
+    fechaInicio: null,
+    fechaFin: null,
     precio: "",
     descripcionContrato: "",
     moneda: "EUR", // Moneda seleccionada
   });
+
+  const formatDate = (date) => {
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
 
   const handleInputChangeText = (key, value) => {
     setFormData({ ...formData, [key]: value });
   };
 
   const handleDateChange = (date, fieldName) => {
-    const dateString = date.toLocaleDateString();
-
     if (fieldName == "fechaInicio") {
       setBaseInputFieldDatePicker(date);
     } else if (fieldName == "fechaFin") {
@@ -80,7 +88,7 @@ const NuevoContrato = ({ route }) => {
 
     setFormData({
       ...formData,
-      [fieldName]: dateString,
+      [fieldName]: date,
     });
   };
 
@@ -91,7 +99,46 @@ const NuevoContrato = ({ route }) => {
     });
   };
 
+  const validateForm = () => {
+    const {
+      tituloContrato,
+      fechaInicio,
+      fechaFin,
+      precio,
+      descripcionContrato,
+    } = formData;
+
+    // Verificación de campos vacíos
+    if (
+      !tituloContrato ||
+      !fechaInicio ||
+      !fechaFin ||
+      !precio ||
+      !descripcionContrato
+    ) {
+      alert("Todos los campos son obligatorios");
+      return false;
+    }
+
+    // Verificación de fechas
+    if (fechaInicio > fechaFin) {
+      alert("La fecha de inicio no puede ser posterior a la fecha final");
+      return false;
+    }
+
+    // Verificación del precio
+    if (isNaN(precio)) {
+      alert("El precio solo puede contener números");
+      return false;
+    }
+
+    return true;
+  };
+
   async function handleCreateContract() {
+    if (!validateForm()) {
+      return;
+    }
     try {
       let precioEnWei;
       if (formData.moneda === "EUR") {
@@ -106,8 +153,8 @@ const NuevoContrato = ({ route }) => {
           formData.tituloContrato,
           formData.descripcionContrato,
           precioEnWei,
-          formData.fechaInicio,
-          formData.fechaFin
+          formatDate(formData.fechaInicio),
+          formatDate(formData.fechaFin)
         )
         .send({ from: account, gas: "1000000" });
       alert("Contrato creado");
@@ -172,6 +219,7 @@ const NuevoContrato = ({ route }) => {
               date={baseInputFieldDatePicker}
               controlStyle={styles.baseInputFieldDatePickerValue}
               onSelect={(date) => handleDateChange(date, "fechaInicio")}
+              min={new Date()} // Permitir solo fechas futuras
             />
           </View>
         </View>

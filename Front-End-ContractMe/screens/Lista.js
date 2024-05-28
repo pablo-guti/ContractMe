@@ -15,6 +15,7 @@ import { Image } from "expo-image";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import ContentRowContratoPropio from "../components/ContentRowContratoPropio";
 import ContentRowContratoParaFirmar from "../components/ContentRowContratoParaFirmar";
+import ContentRowContratoFirmado from "../components/ContentRowContratoFirmado";
 import { FontFamily, Color, Padding, Border, FontSize } from "../GlobalStyles";
 
 const Lista = ({ route }) => {
@@ -24,6 +25,7 @@ const Lista = ({ route }) => {
   const { account } = route.params;
   const [contractsToSign, setContractsToSign] = useState([]);
   const [ownerContracts, setOwnerContracts] = useState([]);
+  const [contractSigned, setContractsSigned] = useState([]);
   const [refresh, setRefresh] = useState(false); // Nuevo estado para la recarga
 
   const connectToBlockchain = useCallback(async () => {
@@ -41,7 +43,7 @@ const Lista = ({ route }) => {
       try {
         //All Contracts
         const contractsToSign = await contract.methods
-          .getAllContractsByOtherOwners(account)
+          .getAllContractsToSign(account)
           .call();
         setContractsToSign(contractsToSign);
       } catch (error) {
@@ -58,6 +60,15 @@ const Lista = ({ route }) => {
         setOwnerContracts(ownerContracts);
       } catch (error) {
         setOwnerContracts([]);
+      }
+
+      try {
+        const contratosFirmados = await contract.methods
+          .getContratosFirmados(account)
+          .call();
+        setContractsSigned(contratosFirmados);
+      } catch (error) {
+        setContractsSigned([]);
       }
     } catch (error) {
       console.error("Error al conectar a la blockchain:", error);
@@ -128,6 +139,9 @@ const Lista = ({ route }) => {
           </ScrollView>
         );
       } else if (selectedTab === "Finalizado") {
+        if (contractSigned.length === 0) {
+          throw new Error("Aun no has firmado ningún contrato");
+        }
         return (
           <ScrollView
             style={styles.scrollGroupActivo}
@@ -135,7 +149,16 @@ const Lista = ({ route }) => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.scrollGroupActivoScrollViewContent}
           >
-            <ContentRowContratoParaFirmar />
+            {contractSigned.map((contract, index) => (
+              <ContentRowContratoFirmado
+                key={index}
+                titulo={contract["titulo"]}
+                fechaInicio={contract["fechaInicio"]}
+                fechaFin={contract["fechaFin"]}
+                id={contract["id"]}
+                account={account}
+              />
+            ))}
           </ScrollView>
         );
       }
@@ -266,7 +289,7 @@ const Lista = ({ route }) => {
                   : styles.firmadoNegro,
               ]}
             >
-              Finalizado
+              Mis Firmados
             </Text>
           </TouchableOpacity>
         </View>

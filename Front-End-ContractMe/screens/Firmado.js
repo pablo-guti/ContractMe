@@ -30,6 +30,8 @@ const Modificar = ({ route }) => {
   const [precio, setPrecio] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [moneda, setMoneda] = useState("ETH");
+  const [firmante, setFirmante] = useState("");
+  const [owner, setOwner] = useState("");
 
   const connectToBlockchain = useCallback(async () => {
     try {
@@ -48,6 +50,11 @@ const Modificar = ({ route }) => {
       const contrato = contractsReturned.find(
         (c) => c.id === BigInt(idContrato)
       );
+
+      // Obtener la dirección del propietario del contrato
+      const owner = await contract.methods.getOwner(idContrato).call();
+      setOwner(owner);
+
       console.log(contrato);
       setTitulo(contrato["titulo"]);
       setFechaInicio(contrato["fechaInicio"]);
@@ -55,6 +62,7 @@ const Modificar = ({ route }) => {
       const precioEnEth = Web3.utils.fromWei(contrato.precio, "ether");
       setPrecio(precioEnEth);
       setDescripcion(contrato["descripcion"]);
+      setFirmante(contrato["firmante"]);
     } catch (error) {
       console.error("Error detallado:", error.message);
     }
@@ -94,12 +102,12 @@ const Modificar = ({ route }) => {
           </TouchableOpacity>
           <View style={styles.frame}>
             <Text style={[styles.pageTitle, styles.label1FlexBox]}>
-              Modificación de Contrato
+              Contrato Firmado
             </Text>
           </View>
         </View>
         <View style={styles.userInfo}>
-          <Text style={styles.userText}> Propietario: {account}</Text>
+          <Text style={styles.userText}> Propietario: {owner}</Text>
         </View>
       </View>
       <ScrollView
@@ -216,19 +224,13 @@ const Modificar = ({ route }) => {
             </TouchableOpacity>
           </View>
         </View>
-
         <View style={[styles.frame5, styles.frameFlexBox]}>
-          <LinearGradient
-            style={styles.baseButton}
-            locations={[0, 1]}
-            colors={["#9b40bf", "#f344f7"]}
-          >
-            <Pressable style={styles.pressable}>
-              <Text style={[styles.buttonText, styles.label1Typo]}>
-                Guardar Cambios
-              </Text>
-            </Pressable>
-          </LinearGradient>
+          <Text style={styles.label1}>Firmante:</Text>
+          <Text style={styles.inputTypo}>
+            {firmante === "0x0000000000000000000000000000000000000000"
+              ? "No firmado aún"
+              : firmante}
+          </Text>
         </View>
       </ScrollView>
     </View>

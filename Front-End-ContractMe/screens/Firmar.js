@@ -15,7 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Color, FontFamily, FontSize, Padding, Border } from "../GlobalStyles";
 
-const EUR_TO_ETH_RATE = 0.00042; // Ejemplo: 1 EUR = 0.00042 ETH
+const EUR_TO_ETH_RATE = 0.00028; // Ejemplo: 1 EUR = 0.00042 ETH
 
 const Firmar = ({ route }) => {
   const navigation = useNavigation();
@@ -206,6 +206,7 @@ const Firmar = ({ route }) => {
             </View>
           </View>
         </View>
+
         <View style={[styles.frame5, styles.frameFlexBox]}>
           <View style={styles.label}>
             <Text style={[styles.label1, styles.label1Typo]}>Moneda</Text>
@@ -245,6 +246,7 @@ const Firmar = ({ route }) => {
             </TouchableOpacity>
           </View>
         </View>
+
         <View style={[styles.frame5, styles.frameFlexBox]}>
           <LinearGradient
             style={styles.baseButton}

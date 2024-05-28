@@ -14,11 +14,12 @@ contract MyContract {
         address firmante;
     }
 
-    enum EstadoContrato {  Activo, Firmado, Finalizado }
+    enum EstadoContrato {  Activo, Firmado, Expirado }
     Contrato[] public contratos; 
     
     mapping (uint => address) public contractOwner;
     mapping (address => uint) private ownerCount;
+    mapping(address => uint256[]) public contratosFirmadosPorCuenta;
 
     event ContratoCreado(uint indexed id, string titulo, string descripcion, address ownerAddress, uint256 precio, string fechaInicio, string fechaFin);
     event ContratoFirmado(uint indexed id, address firmante);
@@ -32,41 +33,47 @@ contract MyContract {
         emit ContratoCreado(_id, _titulo, _descripcion, contractOwner[_id], _precio, _fechaInicio, _fechaFin);
     }
 
-    function getContrato(uint _id) public view returns (Contrato memory) {
-        require(_id < contratos.length, "No existe ningun contrato");
-        return contratos[_id];
-    }
-
     function firmarContrato(uint _id) public payable {
         Contrato storage contrato = contratos[_id];
         require(contrato.firmante == address(0), "El contrato ya ha sido firmado");
         require(msg.value == contrato.precio, "El monto enviado no coincide con el precio del contrato");
         contrato.firmante = msg.sender;
         contrato.estado = EstadoContrato.Firmado;
+        contratosFirmadosPorCuenta[msg.sender].push(_id);
         payable(contractOwner[_id]).transfer(msg.value);
         emit ContratoFirmado(_id, msg.sender);
     }
 
+    function getContrato(uint _id) public view returns (Contrato memory) {
+        require(_id < contratos.length, "No existe ningun contrato");
+        return contratos[_id];
+    }
+
+   
     function obtenerFirmante(uint _id) public view returns (address) {
         require(_id < contratos.length, "No existe ningun contrato con ese ID");
         return contratos[_id].firmante;
     }
 
-    function todosLosContratosSonDelOwner(address owner) internal view returns (bool) {
-        for (uint i = 0; i < contratos.length; i++) {
-            if (contractOwner[i] != owner) {
-                return false;
-            }
+
+    function getContratosFirmados(address _cuenta) public view returns (Contrato[] memory) {
+        uint256[] memory ids = contratosFirmadosPorCuenta[_cuenta];
+        Contrato[] memory resultado = new Contrato[](ids.length);
+        
+        for (uint256 i = 0; i < ids.length; i++) {
+            resultado[i] = contratos[ids[i]];
         }
-        return true;
+
+        return resultado;
     }
 
-    function getAllContractsByOtherOwners (address owner) public view returns (Contrato[] memory){
+
+    function getAllContractsToSign (address owner) public view returns (Contrato[] memory){
         require(todosLosContratosSonDelOwner(owner) == false, "El propietario tiene todos los contratos");
         Contrato[] memory contratosAux = new Contrato[](contratos.length - ownerCount[owner]);
         uint count = 0;
         for (uint i=0; i < contratos.length; i++){
-            if (contractOwner[i] != owner) {
+            if (contractOwner[i] != owner && contratos[i].firmante == address(0)) {
                 contratosAux[count] = contratos[i];
                 count++;
             }
@@ -79,12 +86,9 @@ contract MyContract {
         return contratosAux;
     }
 
-    function existenContratosParaOwner(address owner) public view returns (bool) {
-        return ownerCount[owner] > 0;
-    }
-
+    
     function getAllContractsByOwner (address owner) public view returns (Contrato[] memory){
-         require(existenContratosParaOwner(owner), "El propietario no tiene contratos");
+          require(existenContratosParaOwner(owner), "El propietario no tiene contratos");
         Contrato[] memory contratosAux = new Contrato[](ownerCount[owner]);
         uint count = 0;
         for (uint i=0; i < contratos.length; i++){
@@ -120,5 +124,18 @@ contract MyContract {
     function getOwner(uint _id) public view returns (address) {
         require(_id < contratos.length, "No existe ningun contrato con ese ID");
         return contractOwner[_id];
+    }
+
+    function todosLosContratosSonDelOwner(address owner) internal view returns (bool) {
+        for (uint i = 0; i < contratos.length; i++) {
+            if (contractOwner[i] != owner) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function existenContratosParaOwner(address owner) public view returns (bool) {
+        return ownerCount[owner] > 0;
     }
 }

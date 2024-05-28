@@ -9,6 +9,7 @@ import PantallaInicial from "./screens/PantallaInicial";
 import Lista from "./screens/Lista";
 import SignIn from "./screens/SignIn";
 import Firmar from "./screens/Firmar";
+import Firmado from "./screens/Firmado";
 import Modificar from "./screens/Modificar";
 import NuevoContrato from "./screens/NuevoContrato";
 import MIcon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -126,6 +127,11 @@ const App = () => {
               <Stack.Screen
                 name="Modificar"
                 component={Modificar}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="Firmado"
+                component={Firmado}
                 options={{ headerShown: false }}
               />
             </Stack.Navigator>
