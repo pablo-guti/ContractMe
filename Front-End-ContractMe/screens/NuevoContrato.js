@@ -19,6 +19,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Color, FontFamily, FontSize, Padding, Border } from "../GlobalStyles";
 
+// Tasa de conversión fija de EUR a ETH (esto normalmente debería obtenerse de una API)
+const EUR_TO_ETH_RATE = 0.00042; // Ejemplo: 1 EUR = 0.00042 ETH
+
 const getContract = async (web3) => {
   const networkID = await web3.eth.net.getId();
   const network = MyContract.networks[networkID];
@@ -26,15 +29,11 @@ const getContract = async (web3) => {
 };
 
 const NuevoContrato = ({ route }) => {
-  /****************************************************************************************/
-  /*Conexión con blockchain y obtención del contrato*/
-
   const [MyContract, setMyContract] = useState();
 
   useEffect(() => {
     const connectToBlockchain = async () => {
       try {
-        //Conexión con la blockchain
         const web3 = new Web3(
           new Web3.providers.HttpProvider(WEB3_PROVIDER_URL)
         );
@@ -42,15 +41,12 @@ const NuevoContrato = ({ route }) => {
         setMyContract(contract);
       } catch (error) {
         console.error("Error al conectar a la blockchain:", error);
-        // Agregar más información sobre el error
         console.error("Error detallado:", error.message);
       }
     };
 
     connectToBlockchain();
   }, []);
-
-  /**********************************************************************************/
 
   const [baseInputFieldDatePicker, setBaseInputFieldDatePicker] =
     useState(undefined);
@@ -66,16 +62,14 @@ const NuevoContrato = ({ route }) => {
     fechaFin: "",
     precio: "",
     descripcionContrato: "",
+    moneda: "EUR", // Moneda seleccionada
   });
 
-  //Actualiza el estado de los textos
   const handleInputChangeText = (key, value) => {
     setFormData({ ...formData, [key]: value });
   };
 
-  //Actualiza el estado de las fechas
   const handleDateChange = (date, fieldName) => {
-    // Convertir la fecha en string
     const dateString = date.toLocaleDateString();
 
     if (fieldName == "fechaInicio") {
@@ -83,16 +77,30 @@ const NuevoContrato = ({ route }) => {
     } else if (fieldName == "fechaFin") {
       setBaseInputFieldDatePicker1(date);
     }
-    // Actualizar el estado de formData con la nueva fecha
+
     setFormData({
       ...formData,
       [fieldName]: dateString,
     });
   };
 
+  const handleMonedaChange = (moneda) => {
+    setFormData({
+      ...formData,
+      moneda,
+    });
+  };
+
   async function handleCreateContract() {
     try {
-      const precioEnWei = Web3.utils.toWei(formData.precio, "wei");
+      let precioEnWei;
+      if (formData.moneda === "EUR") {
+        const precioEnEth = parseFloat(formData.precio) * EUR_TO_ETH_RATE;
+        precioEnWei = Web3.utils.toWei(precioEnEth.toString(), "ether");
+      } else {
+        precioEnWei = Web3.utils.toWei(formData.precio, "ether");
+      }
+
       await MyContract.methods
         .crearContrato(
           formData.tituloContrato,
@@ -102,12 +110,11 @@ const NuevoContrato = ({ route }) => {
           formData.fechaFin
         )
         .send({ from: account, gas: "1000000" });
-      console.log("Contrato Creado");
-      window.alert("Contrato creado");
+      alert("Contrato creado");
       navigation.navigate("Lista", { account: account });
     } catch (error) {
       console.error("Error al crear el contrato", error);
-      window.alert("Eror al crear el contrato");
+      alert("Error al crear el contrato");
     }
   }
 
@@ -181,11 +188,12 @@ const NuevoContrato = ({ route }) => {
             />
           </View>
         </View>
+
         <View style={[styles.frame1, styles.frameFlexBox]}>
-          <View style={styles.textInput}>
+          <View style={[styles.textInput]}>
             <View style={styles.label}>
               <Text style={[styles.label1, styles.label1Typo]}>
-                Precio (ETH)
+                Precio ({formData.moneda})
               </Text>
             </View>
             <TextInput
@@ -213,6 +221,45 @@ const NuevoContrato = ({ route }) => {
           </View>
         </View>
         <View style={[styles.frame5, styles.frameFlexBox]}>
+          <View style={styles.label}>
+            <Text style={[styles.label1, styles.label1Typo]}>Moneda</Text>
+          </View>
+          <View style={styles.monedaSelector}>
+            <TouchableOpacity
+              style={[
+                styles.monedaButton,
+                formData.moneda === "EUR" ? styles.selectedButton : {},
+              ]}
+              onPress={() => handleMonedaChange("EUR")}
+            >
+              <Text
+                style={[
+                  styles.monedaButtonText,
+                  formData.moneda === "EUR" ? styles.selectedButtonText : {},
+                ]}
+              >
+                EUR
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.monedaButton,
+                formData.moneda === "ETH" ? styles.selectedButton : {},
+              ]}
+              onPress={() => handleMonedaChange("ETH")}
+            >
+              <Text
+                style={[
+                  styles.monedaButtonText,
+                  formData.moneda === "ETH" ? styles.selectedButtonText : {},
+                ]}
+              >
+                ETH
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={[styles.frame5, styles.frameFlexBox]}>
           <LinearGradient
             style={styles.baseButton}
             locations={[0, 1]}
@@ -231,6 +278,29 @@ const NuevoContrato = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
+  monedaSelector: {
+    flexDirection: "row",
+    marginTop: 10,
+  },
+  monedaButton: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+  selectedButton: {
+    backgroundColor: "#9b40bf",
+  },
+  monedaButtonText: {
+    fontSize: 16,
+    color: "#000",
+  },
+  selectedButtonText: {
+    color: "#fff",
+  },
   baseInputFieldDatePickerValue: {},
   baseInputFieldDatePicker1Value: {},
   scrollGroupScrollViewContent: {

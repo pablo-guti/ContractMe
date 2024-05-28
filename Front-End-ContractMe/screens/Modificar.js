@@ -15,6 +15,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Color, FontFamily, FontSize, Padding, Border } from "../GlobalStyles";
 
+const EUR_TO_ETH_RATE = 0.00042; // Ejemplo: 1 EUR = 0.00042 ETH
+
 const Modificar = ({ route }) => {
   const navigation = useNavigation();
   const { idContrato, account } = route.params;
@@ -27,6 +29,7 @@ const Modificar = ({ route }) => {
   const [fechaFin, setFechaFin] = useState("");
   const [precio, setPrecio] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [moneda, setMoneda] = useState("ETH");
 
   const connectToBlockchain = useCallback(async () => {
     try {
@@ -48,7 +51,8 @@ const Modificar = ({ route }) => {
       setTitulo(contrato["titulo"]);
       setFechaInicio(contrato["fechaInicio"]);
       setFechaFin(contrato["fechaFin"]);
-      setPrecio(contrato["precio"].toString());
+      const precioEnEth = Web3.utils.fromWei(contrato.precio, "ether");
+      setPrecio(precioEnEth);
       setDescripcion(contrato["descripcion"]);
     } catch (error) {
       console.error("Error detallado:", error.message);
@@ -59,6 +63,17 @@ const Modificar = ({ route }) => {
     connectToBlockchain();
   }, [connectToBlockchain]);
   /**********************************************************************************/
+
+  const handleMonedaChange = (moneda) => {
+    setMoneda(moneda);
+  };
+
+  const displayPrecio = () => {
+    if (moneda === "EUR") {
+      return (parseFloat(precio) / EUR_TO_ETH_RATE).toFixed(2);
+    }
+    return precio;
+  };
 
   return (
     <View style={[styles.firmar, styles.firmarFlexBox]}>
@@ -130,20 +145,22 @@ const Modificar = ({ route }) => {
             </View>
           </View>
         </View>
+
         <View style={[styles.frame2, styles.frameFlexBox]}>
           <View style={styles.textInput}>
             <View style={styles.label}>
               <Text style={[styles.label1, styles.label1Typo]}>
-                Precio (ETH)
+                Precio ({moneda})
               </Text>
             </View>
             <View style={[styles.baseInputField1, styles.baseSpaceBlock]}>
               <Text style={[styles.inputPlaceholder, styles.inputTypo]}>
-                {precio}
+                {displayPrecio()}
               </Text>
             </View>
           </View>
         </View>
+
         <View style={[styles.frame5, styles.frameFlexBox]}>
           <View style={styles.textInput4}>
             <View style={styles.label}>
@@ -158,6 +175,47 @@ const Modificar = ({ route }) => {
             </View>
           </View>
         </View>
+
+        <View style={[styles.frame5, styles.frameFlexBox]}>
+          <View style={styles.label}>
+            <Text style={[styles.label1, styles.label1Typo]}>Moneda</Text>
+          </View>
+          <View style={styles.monedaSelector}>
+            <TouchableOpacity
+              style={[
+                styles.monedaButton,
+                moneda === "EUR" ? styles.selectedButton : {},
+              ]}
+              onPress={() => handleMonedaChange("EUR")}
+            >
+              <Text
+                style={[
+                  styles.monedaButtonText,
+                  moneda === "EUR" ? styles.selectedButtonText : {},
+                ]}
+              >
+                EUR
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.monedaButton,
+                moneda === "ETH" ? styles.selectedButton : {},
+              ]}
+              onPress={() => handleMonedaChange("ETH")}
+            >
+              <Text
+                style={[
+                  styles.monedaButtonText,
+                  moneda === "ETH" ? styles.selectedButtonText : {},
+                ]}
+              >
+                ETH
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         <View style={[styles.frame5, styles.frameFlexBox]}>
           <LinearGradient
             style={styles.baseButton}
@@ -177,6 +235,29 @@ const Modificar = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
+  monedaSelector: {
+    flexDirection: "row",
+    marginTop: 10,
+  },
+  monedaButton: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+  selectedButton: {
+    backgroundColor: "#9b40bf",
+  },
+  monedaButtonText: {
+    fontSize: 16,
+    color: "#000",
+  },
+  selectedButtonText: {
+    color: "#fff",
+  },
   userInfo: {
     alignItems: "center",
     justifyContent: "center",

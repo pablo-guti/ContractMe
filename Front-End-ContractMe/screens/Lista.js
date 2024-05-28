@@ -41,11 +41,12 @@ const Lista = ({ route }) => {
       try {
         //All Contracts
         const contractsToSign = await contract.methods
-          .getAllContractsToSign(account)
+          .getAllContractsByOtherOwners(account)
           .call();
         setContractsToSign(contractsToSign);
       } catch (error) {
         setContractsToSign([]);
+        console.log(error);
       }
 
       try {
