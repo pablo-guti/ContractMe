@@ -20,10 +20,14 @@ contract MyContract {
     mapping (uint => address) public contractOwner;
     mapping (address => uint) private ownerCount;
     mapping(address => uint256[]) public contratosFirmadosPorCuenta;
+    mapping(uint256 => uint256) public contractIndexById;
 
     event ContratoCreado(uint indexed id, string titulo, string descripcion, address ownerAddress, uint256 precio, string fechaInicio, string fechaFin);
+    event ContratoModificado(uint indexed id, string nuevoTitulo, string nuevaDescripcion, uint256 nuevoPrecio, string nuevaFechaInicio, string nuevaFechaFin);
     event ContratoFirmado(uint indexed id, address firmante);
 
+
+    //Crear, modificar y firmar contratos
     function crearContrato(string memory _titulo, string memory _descripcion, uint256 _precio, string memory _fechaInicio, string memory _fechaFin) public {
         require(_precio > 0, "El precio es igual o inferior a cero");
         uint _id = contratos.length;
@@ -43,6 +47,22 @@ contract MyContract {
         payable(contractOwner[_id]).transfer(msg.value);
         emit ContratoFirmado(_id, msg.sender);
     }
+
+    function modificarContrato(uint _id, string memory _nuevoTitulo, string memory _nuevaDescripcion, uint256 _nuevoPrecio, string memory _nuevaFechaInicio, string memory _nuevaFechaFin) public {
+        require(_id < contratos.length, "El contrato no existe");
+        require(contractOwner[_id] == msg.sender, "Solo el propietario puede modificar el contrato");
+
+        Contrato storage contrato = contratos[_id];
+        contrato.titulo = _nuevoTitulo;
+        contrato.descripcion = _nuevaDescripcion;
+        contrato.precio = _nuevoPrecio;
+        contrato.fechaInicio = _nuevaFechaInicio;
+        contrato.fechaFin = _nuevaFechaFin;
+
+        emit ContratoModificado(_id, _nuevoTitulo, _nuevaDescripcion, _nuevoPrecio, _nuevaFechaInicio, _nuevaFechaFin);
+    }
+
+    /*************************************************************/
 
     function getContrato(uint _id) public view returns (Contrato memory) {
         require(_id < contratos.length, "No existe ningun contrato");
@@ -73,7 +93,7 @@ contract MyContract {
         Contrato[] memory contratosAux = new Contrato[](contratos.length - ownerCount[owner]);
         uint count = 0;
         for (uint i=0; i < contratos.length; i++){
-            if (contractOwner[i] != owner && contratos[i].firmante == address(0)) {
+            if (contractOwner[i] != owner) {
                 contratosAux[count] = contratos[i];
                 count++;
             }
@@ -88,7 +108,7 @@ contract MyContract {
 
     
     function getAllContractsByOwner (address owner) public view returns (Contrato[] memory){
-          require(existenContratosParaOwner(owner), "El propietario no tiene contratos");
+        require(existenContratosParaOwner(owner), "El propietario no tiene contratos");
         Contrato[] memory contratosAux = new Contrato[](ownerCount[owner]);
         uint count = 0;
         for (uint i=0; i < contratos.length; i++){
@@ -138,4 +158,6 @@ contract MyContract {
     function existenContratosParaOwner(address owner) public view returns (bool) {
         return ownerCount[owner] > 0;
     }
+
+
 }

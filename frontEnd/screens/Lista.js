@@ -48,7 +48,6 @@ const Lista = ({ route }) => {
         setContractsToSign(contractsToSign);
       } catch (error) {
         setContractsToSign([]);
-        console.log(error);
       }
 
       try {
@@ -87,6 +86,7 @@ const Lista = ({ route }) => {
   const handleRefresh = () => {
     // Cambiar el estado para forzar una recarga
     setRefresh((prevState) => !prevState);
+    console.log(ownerContracts);
   };
 
   const renderScrollView = () => {

@@ -1,8 +1,8 @@
 import "../global";
 import { WEB3_PROVIDER_URL } from "../global";
 import "react-native-get-random-values";
-import React, { useState, useEffect } from "react";
-import Web3 from "web3";
+import React, { useState, useEffect, useCallback } from "react";
+import Web3, { ETH_DATA_FORMAT } from "web3";
 import MyContract from "../contracts/MyContract.json";
 import {
   StyleSheet,
@@ -12,14 +12,19 @@ import {
   Text,
   ScrollView,
   TextInput,
+  Platform,
 } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Image } from "expo-image";
-import { Datepicker as RNKDatepicker } from "@ui-kitten/components";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Color, FontFamily, FontSize, Padding, Border } from "../GlobalStyles";
+import axios from "axios";
 
-const EUR_TO_ETH_RATE = 0.00028; // Ejemplo: 1 EUR = 0.00042 ETH
+const API_URL =
+  "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=eur";
+
+const EUR_TO_ETH_RATE = 0.00028;
 
 const getContract = async (web3) => {
   const networkID = await web3.eth.net.getId();
@@ -51,22 +56,35 @@ const NuevoContrato = ({ route }) => {
 
   /****************************************************************************************/
 
-  const [baseInputFieldDatePicker, setBaseInputFieldDatePicker] =
-    useState(null);
-  const [baseInputFieldDatePicker1, setBaseInputFieldDatePicker1] =
-    useState(null);
+  const [showInicioPicker, setShowInicioPicker] = useState(false);
+  const [showFinPicker, setShowFinPicker] = useState(false);
+  const [eurToETH, setEurToEth] = useState(null);
 
   const navigation = useNavigation();
   const { account } = route.params;
 
   const [formData, setFormData] = useState({
     tituloContrato: "",
-    fechaInicio: null,
-    fechaFin: null,
+    fechaInicio: new Date(),
+    fechaFin: new Date(),
     precio: "",
     descripcionContrato: "",
     moneda: "EUR", // Moneda seleccionada
   });
+
+  const fetchEthToEurRate = useCallback(async () => {
+    try {
+      const response = await axios.get(API_URL);
+      const rate = response.data.ethereum.eur;
+      setEurToEth(1 / rate);
+    } catch (error) {
+      setEurToEth(EUR_TO_ETH_RATE);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchEthToEurRate();
+  }, [fetchEthToEurRate]);
 
   const formatDate = (date) => {
     const day = date.getDate().toString().padStart(2, "0");
@@ -80,12 +98,6 @@ const NuevoContrato = ({ route }) => {
   };
 
   const handleDateChange = (date, fieldName) => {
-    if (fieldName == "fechaInicio") {
-      setBaseInputFieldDatePicker(date);
-    } else if (fieldName == "fechaFin") {
-      setBaseInputFieldDatePicker1(date);
-    }
-
     setFormData({
       ...formData,
       [fieldName]: date,
@@ -120,6 +132,16 @@ const NuevoContrato = ({ route }) => {
       return false;
     }
 
+    if (fechaInicio < new Date() + 1) {
+      alert("La fecha de inicio no puede ser menor a la actual");
+      return false;
+    }
+
+    if (fechaFin < new Date() + 1) {
+      alert("La fecha de fin no puede ser menor a la actual");
+      return false;
+    }
+
     // Verificación de fechas
     if (fechaInicio > fechaFin) {
       alert("La fecha de inicio no puede ser posterior a la fecha final");
@@ -142,7 +164,8 @@ const NuevoContrato = ({ route }) => {
     try {
       let precioEnWei;
       if (formData.moneda === "EUR") {
-        const precioEnEth = parseFloat(formData.precio) * EUR_TO_ETH_RATE;
+        const precioEnEth = parseFloat(formData.precio) * eurToETH;
+        console.log(precioEnEth);
         precioEnWei = Web3.utils.toWei(precioEnEth.toString(), "ether");
       } else {
         precioEnWei = Web3.utils.toWei(formData.precio, "ether");
@@ -214,13 +237,25 @@ const NuevoContrato = ({ route }) => {
                 Fecha inicio
               </Text>
             </View>
-            <RNKDatepicker
-              style={styles.baseInputField1}
-              date={baseInputFieldDatePicker}
-              controlStyle={styles.baseInputFieldDatePickerValue}
-              onSelect={(date) => handleDateChange(date, "fechaInicio")}
-              min={new Date()} // Permitir solo fechas futuras
-            />
+            <TouchableOpacity onPress={() => setShowInicioPicker(true)}>
+              <TextInput
+                style={[styles.baseInputField1, styles.baseSpaceBlock]}
+                value={formatDate(formData.fechaInicio)}
+                editable={false}
+              />
+            </TouchableOpacity>
+            {showInicioPicker && (
+              <DateTimePicker
+                value={formData.fechaInicio}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  const currentDate = selectedDate || formData.fechaInicio;
+                  setShowInicioPicker(false);
+                  handleDateChange(currentDate, "fechaInicio");
+                }}
+              />
+            )}
           </View>
         </View>
         <View style={[styles.frame1, styles.frameFlexBox]}>
@@ -228,15 +263,27 @@ const NuevoContrato = ({ route }) => {
             <View style={styles.label}>
               <Text style={[styles.label1, styles.label1Typo]}>Fecha fin</Text>
             </View>
-            <RNKDatepicker
-              style={styles.baseInputField1}
-              date={baseInputFieldDatePicker1}
-              onSelect={(date) => handleDateChange(date, "fechaFin")}
-              controlStyle={styles.baseInputFieldDatePicker1Value}
-            />
+            <TouchableOpacity onPress={() => setShowFinPicker(true)}>
+              <TextInput
+                style={[styles.baseInputField1, styles.baseSpaceBlock]}
+                value={formatDate(formData.fechaFin)}
+                editable={false}
+              />
+            </TouchableOpacity>
+            {showFinPicker && (
+              <DateTimePicker
+                value={formData.fechaFin}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  const currentDate = selectedDate || formData.fechaFin;
+                  setShowFinPicker(false);
+                  handleDateChange(currentDate, "fechaFin");
+                }}
+              />
+            )}
           </View>
         </View>
-
         <View style={[styles.frame1, styles.frameFlexBox]}>
           <View style={[styles.textInput]}>
             <View style={styles.label}>
@@ -467,7 +514,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   baseInputField1: {
+    height: 50,
     marginTop: 4,
+    paddingVertical: Padding.p_xs,
+    paddingHorizontal: Padding.p_base,
+    borderWidth: 1.5,
+    borderColor: Color.colorGray_100,
+    borderStyle: "solid",
+    borderRadius: Border.br_81xl,
+    overflow: "hidden",
+    color: "#666",
   },
   frame1: {
     paddingVertical: 0,

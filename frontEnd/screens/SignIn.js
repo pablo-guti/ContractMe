@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import Web3 from "web3";
 import { WEB3_PROVIDER_URL } from "../global";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   View,
   Pressable,
@@ -12,57 +12,30 @@ import { Image } from "expo-image";
 import { TextInput as RNPTextInput } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 import { Color, Padding, Border, FontSize, FontFamily } from "../GlobalStyles";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const SignIn = () => {
   const navigation = useNavigation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  //Evento de registro de usuarios
-  const handleRegister = async () => {
-    const web3 = new Web3(new Web3.providers.HttpProvider(WEB3_PROVIDER_URL));
-    const accounts = await web3.eth.getAccounts();
+  const handleLogin = async () => {
     const storedUsers = await AsyncStorage.getItem("users");
     const users = storedUsers ? JSON.parse(storedUsers) : [];
+    const user = users.find(
+      (user) => user.username === username && user.password === password
+    );
 
     if (!username || !password) {
       window.alert("Por favor, complete todos los campos");
       return;
     }
 
-    if (users.find((user) => user.username === username)) {
-      window.alert("El nombre de usuario ya existe");
+    if (!user) {
+      window.alert("Usuario o contraseña incorrectos");
       return;
     }
 
-    const usedAccounts = users.map((user) => user.account);
-    const availableAccount = accounts.find(
-      (acc) => !usedAccounts.includes(acc)
-    );
-
-    if (!availableAccount) {
-      window.alert("No hay cuentas disponibles");
-      return;
-    }
-
-    users.push({ username, password, account: availableAccount });
-    await AsyncStorage.setItem("users", JSON.stringify(users));
-
-    window.alert(
-      "Usuario registrado con dirección de cartera:" + availableAccount
-    );
-
-    navigation.navigate("SignIn");
-  };
-
-  const handleClearAll = async () => {
-    try {
-      await AsyncStorage.clear();
-      console.log("Todos los ítems eliminados");
-    } catch (error) {
-      console.error("Error al eliminar todos los ítems", error);
-    }
+    navigation.navigate("Lista", { account: user.account });
   };
 
   return (
@@ -94,15 +67,16 @@ const SignIn = () => {
         <View style={styles.content}>
           <View style={styles.copy}>
             <Text style={[styles.iniciarSesion, styles.contractmeFlexBox]}>
-              Registrarse
+              Iniciar Sesion
             </Text>
             <Text style={[styles.ingresaDireccinDe, styles.contractmeFlexBox]}>
-              Ingresa usuario y contraseña.
+              Ingresa usuario y contraseña
             </Text>
           </View>
           <RNPTextInput
             style={[styles.field, styles.fieldFlexBox]}
             placeholder="Nombre de usuario                      "
+            mode="flat"
             placeholderTextColor="#828282"
             theme={{
               fonts: {
@@ -120,30 +94,22 @@ const SignIn = () => {
             error={false}
             mode="flat"
             placeholderTextColor="#828282"
-            secureTextEntry
             theme={{
               fonts: {
                 regular: { fontWeight: "Regular" },
               },
               colors: { text: "#828282" },
             }}
+            secureTextEntry
             value={password}
             onChangeText={setPassword}
           />
           <TouchableOpacity
             style={[styles.button, styles.fieldFlexBox]}
             activeOpacity={0.2}
-            onPress={handleRegister}
+            onPress={handleLogin}
           >
-            <Text style={styles.iniciarSesion1}>Registrarse</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.button, styles.fieldFlexBox]}
-            activeOpacity={0.2}
-            onPress={handleClearAll}
-          >
-            <Text style={styles.iniciarSesion1}>Clear All</Text>
+            <Text style={styles.iniciarSesion1}>Iniciar Sesion</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -175,7 +141,7 @@ const styles = StyleSheet.create({
     height: 24,
   },
   frame: {
-    width: 339,
+    width: 300,
     paddingHorizontal: Padding.p_3xs,
     paddingVertical: 0,
     overflow: "hidden",

@@ -14,12 +14,16 @@ import MyContract from "../contracts/MyContract.json";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { Color, FontFamily, FontSize, Padding, Border } from "../GlobalStyles";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 
+const API_URL =
+  "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=eur";
 const EUR_TO_ETH_RATE = 0.00028; // Ejemplo: 1 EUR = 0.00042 ETH
 
-const Modificar = ({ route }) => {
+const Firmar = ({ route }) => {
   const navigation = useNavigation();
-  const { idContrato, account } = route.params;
+  const { idContrato, userAccount } = route.params;
 
   /****************************************************************************************/
   /*Conexión con blockchain y obtención del contrato*/
@@ -29,51 +33,147 @@ const Modificar = ({ route }) => {
   const [fechaFin, setFechaFin] = useState("");
   const [precio, setPrecio] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [account, setOwner] = useState("");
+  const [ownerInfo, setOwnerInfo] = useState(null);
+  const [firmanteInfo, setFirmanteInfo] = useState(null);
+  const [firmante, setFirmante] = useState("");
   const [moneda, setMoneda] = useState("ETH");
+  const [ethToEurRate, setEthToEurRate] = useState(null);
+  const [estado, setEstado] = useState("");
 
   const connectToBlockchain = useCallback(async () => {
     try {
       const web3 = new Web3(new Web3.providers.HttpProvider(WEB3_PROVIDER_URL));
-      const accounts = await web3.eth.getAccounts();
-      const ownerAddress = accounts[0];
       const networkID = await web3.eth.net.getId();
       const network = MyContract.networks[networkID];
       const contract = new web3.eth.Contract(
         MyContract.abi,
         network && network.address
       );
-      const contractsReturned = await contract.methods.getAllContracts().call();
+      const contrato = await contract.methods.getContrato(idContrato).call();
 
-      //Filtrar en busca de un contrato en concreto
-      const contrato = contractsReturned.find(
-        (c) => c.id === BigInt(idContrato)
+      // Obtener la dirección del propietario del contrato
+      const owner = await contract.methods.getOwner(idContrato).call();
+      setOwner(owner);
+
+      // Obtener información del propietario y del firmante
+      const storedUsers = await AsyncStorage.getItem("users");
+      const users = storedUsers ? JSON.parse(storedUsers) : [];
+      const ownerUserInfo = users.find((user) => user.account === owner);
+      const firmanteUserInfo = users.find(
+        (user) => user.account === contrato.firmante
       );
-      console.log(contrato);
-      setTitulo(contrato["titulo"]);
-      setFechaInicio(contrato["fechaInicio"]);
-      setFechaFin(contrato["fechaFin"]);
+
+      setOwnerInfo(ownerUserInfo);
+      setFirmanteInfo(firmanteUserInfo);
+
+      setTitulo(contrato.titulo);
+      setFechaInicio(contrato.fechaInicio);
+      setFechaFin(contrato.fechaFin);
       const precioEnEth = Web3.utils.fromWei(contrato.precio, "ether");
-      setPrecio(precioEnEth);
-      setDescripcion(contrato["descripcion"]);
+      setPrecio(precioEnEth); // Convertir de Wei a Ether
+      setDescripcion(contrato.descripcion);
+      setFirmante(contrato.firmante);
+
+      const now = new Date();
+      const fechaInicio = parseDateString(contrato["fechaInicio"]);
+      const fechaFin = parseDateString(contrato["fechaFin"]);
+      let estado;
+
+      if (
+        contrato["firmante"] !== "0x0000000000000000000000000000000000000000"
+      ) {
+        estado = "firmado";
+      } else if (now > fechaFin) {
+        estado = "expirado";
+      } else {
+        estado = "activo";
+      }
+      setEstado(estado);
     } catch (error) {
       console.error("Error detallado:", error.message);
     }
-  }, []);
+  }, [idContrato]);
 
   useEffect(() => {
     connectToBlockchain();
   }, [connectToBlockchain]);
   /**********************************************************************************/
 
+  const fetchEthToEurRate = useCallback(async () => {
+    try {
+      const response = await axios.get(API_URL);
+      const rate = response.data.ethereum.eur;
+      setEthToEurRate(rate);
+    } catch (error) {
+      setEthToEurRate(EUR_TO_ETH_RATE);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchEthToEurRate();
+  }, [fetchEthToEurRate]);
+
+  const handleFirmar = async () => {
+    if (firmante !== "0x0000000000000000000000000000000000000000") {
+      alert("El contrato ya ha sido firmado");
+      return;
+    }
+
+    if (estado != "activo") {
+      alert("El contrato esta expirado");
+      return;
+    }
+
+    try {
+      const web3 = new Web3(new Web3.providers.HttpProvider(WEB3_PROVIDER_URL));
+      const networkID = await web3.eth.net.getId();
+      const network = MyContract.networks[networkID];
+      const contract = new web3.eth.Contract(
+        MyContract.abi,
+        network && network.address
+      );
+      const precioEnWei = Web3.utils.toWei(precio, "ether");
+      await contract.methods.firmarContrato(idContrato).send({
+        from: userAccount,
+        value: precioEnWei,
+        gas: "1000000",
+      });
+      alert("Contrato firmado exitosamente");
+      connectToBlockchain(); // Refresh the contract details
+    } catch (error) {
+      console.error("Error al firmar el contrato:", error.message);
+      alert("Error al firmar el contrato");
+    }
+  };
+
   const handleMonedaChange = (moneda) => {
     setMoneda(moneda);
   };
 
   const displayPrecio = () => {
-    if (moneda === "EUR") {
-      return (parseFloat(precio) / EUR_TO_ETH_RATE).toFixed(2);
+    if (moneda === "EUR" && ethToEurRate) {
+      return (parseFloat(precio) * ethToEurRate).toFixed(2);
     }
     return precio;
+  };
+
+  const parseDateString = (dateString) => {
+    const [day, month, year] = dateString.split("/");
+    return new Date(year, month - 1, day);
+  };
+
+  const getEstadoStyle = (estado) => {
+    switch (estado) {
+      case "activo":
+        return styles.estadoActivo;
+      case "firmado":
+        return styles.estadoFirmado;
+      case "expirado":
+        return styles.estadoExpirado;
+      default:
+        return {};
+    }
   };
 
   return (
@@ -84,7 +184,9 @@ const Modificar = ({ route }) => {
           <TouchableOpacity
             style={styles.arrowLeft}
             activeOpacity={0.2}
-            onPress={() => navigation.navigate("Lista", { account })}
+            onPress={() =>
+              navigation.navigate("Lista", { account: userAccount })
+            }
           >
             <Image
               style={styles.icon}
@@ -94,12 +196,15 @@ const Modificar = ({ route }) => {
           </TouchableOpacity>
           <View style={styles.frame}>
             <Text style={[styles.pageTitle, styles.label1FlexBox]}>
-              Modificación de Contrato
+              Firmar Contrato
             </Text>
           </View>
         </View>
         <View style={styles.userInfo}>
-          <Text style={styles.userText}> Propietario: {account}</Text>
+          <Text style={[styles.userText, getEstadoStyle(estado)]}>
+            {" "}
+            Estado: {estado}
+          </Text>
         </View>
       </View>
       <ScrollView
@@ -217,16 +322,47 @@ const Modificar = ({ route }) => {
           </View>
         </View>
 
+        <View style={styles.userInfoSection}>
+          <View style={styles.userInfoBlock}>
+            <Text style={styles.userInfoTitle}>Propietario</Text>
+            <Text style={styles.userInfoText}>
+              {ownerInfo ? (
+                <>
+                  Usuario: {ownerInfo.username} {"\n"}
+                  DNI: {ownerInfo.dni} {"\n"}
+                  Dirección: {ownerInfo.account}
+                </>
+              ) : (
+                "Información no disponible"
+              )}
+            </Text>
+          </View>
+          <View style={styles.separator} />
+          <View style={styles.userInfoBlock}>
+            <Text style={styles.userInfoTitle}>Firmante</Text>
+            <Text style={styles.userInfoText}>
+              {firmante === "0x0000000000000000000000000000000000000000" ? (
+                "No firmado aún"
+              ) : firmanteInfo ? (
+                <>
+                  Usuario: {firmanteInfo.username} {"\n"}
+                  DNI: {firmanteInfo.dni} {"\n"}
+                  Dirección: {firmanteInfo.account}
+                </>
+              ) : (
+                "Información no disponible"
+              )}
+            </Text>
+          </View>
+        </View>
         <View style={[styles.frame5, styles.frameFlexBox]}>
           <LinearGradient
             style={styles.baseButton}
             locations={[0, 1]}
             colors={["#9b40bf", "#f344f7"]}
           >
-            <Pressable style={styles.pressable}>
-              <Text style={[styles.buttonText, styles.label1Typo]}>
-                Guardar Cambios
-              </Text>
+            <Pressable style={styles.pressable} onPress={handleFirmar}>
+              <Text style={[styles.buttonText, styles.label1Typo]}>Firmar</Text>
             </Pressable>
           </LinearGradient>
         </View>
@@ -259,6 +395,7 @@ const styles = StyleSheet.create({
   selectedButtonText: {
     color: "#fff",
   },
+
   userInfo: {
     alignItems: "center",
     justifyContent: "center",
@@ -486,6 +623,44 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
   },
+  userInfoSection: {
+    marginTop: 20,
+    padding: 10,
+    alignSelf: "stretch",
+  },
+  userInfoBlock: {
+    paddingVertical: 10,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: "#ccc",
+    marginVertical: 10,
+  },
+  userInfoTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 5,
+    color: Color.fontWhite,
+  },
+  userInfoText: {
+    fontSize: 16,
+    color: Color.fontWhite,
+  },
+  estadoActivo: {
+    color: "green",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  estadoFirmado: {
+    color: "orange",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  estadoExpirado: {
+    color: "red",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 });
 
-export default Modificar;
+export default Firmar;

@@ -79,7 +79,7 @@ con Blockchain`}</Text>
               activeOpacity={0.2}
               onPress={() => navigation.navigate("CrearCuenta")}
             >
-              <Text style={styles.comenzar}>Comenzar</Text>
+              <Text style={styles.comenzar}>Registrarse</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.inputAndButton}>
