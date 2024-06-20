@@ -6,7 +6,7 @@ import React, { useState, useEffect, createContext } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import PantallaInicial from "./screens/PantallaInicial";
-import Lista from "./screens/Lista";
+import Lista from "./screens/Main";
 import SignIn from "./screens/SignIn";
 import Firmar from "./screens/Firmar";
 import Firmado from "./screens/Firmado";
@@ -26,6 +26,7 @@ import {
 } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import CrearCuenta from "./screens/CrearCuenta";
+import Main from "./screens/Main";
 
 const getContract = async (web3) => {
   const networkID = await web3.eth.net.getId();

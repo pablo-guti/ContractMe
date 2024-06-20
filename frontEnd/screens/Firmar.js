@@ -19,7 +19,7 @@ import axios from "axios";
 
 const API_URL =
   "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=eur";
-const EUR_TO_ETH_RATE = 0.00028; // Ejemplo: 1 EUR = 0.00042 ETH
+const EUR_TO_ETH_RATE = 0.00028;
 
 const Firmar = ({ route }) => {
   const navigation = useNavigation();

@@ -18,7 +18,7 @@ import ContentRowContratoParaFirmar from "../components/ContentRowContratoParaFi
 import ContentRowContratoFirmado from "../components/ContentRowContratoFirmado";
 import { FontFamily, Color, Padding, Border, FontSize } from "../GlobalStyles";
 
-const Lista = ({ route }) => {
+const Main = ({ route }) => {
   /****************************************************************************************/
   /*Conexión con blockchain y obtención del contrato*/
 
@@ -86,7 +86,6 @@ const Lista = ({ route }) => {
   const handleRefresh = () => {
     // Cambiar el estado para forzar una recarga
     setRefresh((prevState) => !prevState);
-    console.log(ownerContracts);
   };
 
   const renderScrollView = () => {
@@ -546,4 +545,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Lista;
+export default Main;
