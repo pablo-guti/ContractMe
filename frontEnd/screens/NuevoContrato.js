@@ -46,8 +46,7 @@ const NuevoContrato = ({ route }) => {
         const contract = await getContract(web3);
         setMyContract(contract);
       } catch (error) {
-        console.error("Error al conectar a la blockchain:", error);
-        console.error("Error detallado:", error.message);
+        alert("No se ha podido conectar a la blockchain");
       }
     };
 
@@ -183,7 +182,6 @@ const NuevoContrato = ({ route }) => {
       alert("Contrato creado");
       navigation.navigate("Lista", { account: account });
     } catch (error) {
-      console.error("Error al crear el contrato", error);
       alert("Error al crear el contrato");
     }
   }

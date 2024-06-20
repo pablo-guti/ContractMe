@@ -70,8 +70,7 @@ const Main = ({ route }) => {
         setContractsSigned([]);
       }
     } catch (error) {
-      console.error("Error al conectar a la blockchain:", error);
-      console.error("Error detallado:", error.message);
+      alert("No se ha podido conectar a la blockchain");
     }
   }, []);
 
@@ -267,7 +266,7 @@ const Main = ({ route }) => {
                   ? styles.paraFirmarBlanco
                   : styles.paraFirmarNegro,
               ]}
-            >{`Para firmar `}</Text>
+            >{`Disponibles `}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[

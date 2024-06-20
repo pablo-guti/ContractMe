@@ -94,7 +94,7 @@ const Modificar = ({ route }) => {
         moneda: "ETH",
       });
     } catch (error) {
-      console.error("Error detallado:", error.message);
+      alert("No se ha podido conectar a la blockchain");
     }
   }, [idContrato]);
 

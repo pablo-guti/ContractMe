@@ -16,17 +16,9 @@ import MIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import { IconRegistry, ApplicationProvider } from "@ui-kitten/components";
 import * as eva from "@eva-design/eva";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import {
-  View,
-  Button,
-  Text,
-  Pressable,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
+import { StyleSheet } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import CrearCuenta from "./screens/CrearCuenta";
-import Main from "./screens/Main";
 
 const getContract = async (web3) => {
   const networkID = await web3.eth.net.getId();

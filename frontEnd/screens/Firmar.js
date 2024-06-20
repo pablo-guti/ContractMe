@@ -91,7 +91,7 @@ const Firmar = ({ route }) => {
       }
       setEstado(estado);
     } catch (error) {
-      console.error("Error detallado:", error.message);
+      alert("No se ha podido conectar a la blockchain");
     }
   }, [idContrato]);
 
@@ -142,7 +142,6 @@ const Firmar = ({ route }) => {
       alert("Contrato firmado exitosamente");
       connectToBlockchain(); // Refresh the contract details
     } catch (error) {
-      console.error("Error al firmar el contrato:", error.message);
       alert("Error al firmar el contrato");
     }
   };

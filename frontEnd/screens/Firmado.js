@@ -75,7 +75,7 @@ const Firmado = ({ route }) => {
       setDescripcion(contrato["descripcion"]);
       setFirmante(contrato["firmante"]);
     } catch (error) {
-      console.error("Error detallado:", error.message);
+      alert("No se ha podido conectar a la blockchain");
     }
   }, []);
 
@@ -89,7 +89,7 @@ const Firmado = ({ route }) => {
       const rate = response.data.ethereum.eur;
       setEthToEurRate(rate);
     } catch (error) {
-      console.error("Error fetching ETH to EUR rate:", error.message);
+      alert("Error al realizar el cambio de moneda");
     }
   }, []);
 
