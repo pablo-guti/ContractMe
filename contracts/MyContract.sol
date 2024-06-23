@@ -19,7 +19,7 @@ contract MyContract {
     
     mapping (uint => address) public contractOwner;
     mapping (address => uint) private ownerCount;
-    mapping(address => uint256[]) public contratosFirmadosPorCuenta;
+    mapping(address => uint256[]) public contractsSignedByAccount;
     mapping(uint256 => uint256) public contractIndexById;
 
     event ContratoCreado(uint indexed id, string titulo, string descripcion, address ownerAddress, uint256 precio, string fechaInicio, string fechaFin);
@@ -43,7 +43,7 @@ contract MyContract {
         require(msg.value == contrato.precio, "El monto enviado no coincide con el precio del contrato");
         contrato.firmante = msg.sender;
         contrato.estado = EstadoContrato.Firmado;
-        contratosFirmadosPorCuenta[msg.sender].push(_id);
+        contractsSignedByAccount[msg.sender].push(_id);
         payable(contractOwner[_id]).transfer(msg.value);
         emit ContratoFirmado(_id, msg.sender);
     }
@@ -77,7 +77,7 @@ contract MyContract {
 
 
     function getContratosFirmados(address _cuenta) public view returns (Contrato[] memory) {
-        uint256[] memory ids = contratosFirmadosPorCuenta[_cuenta];
+        uint256[] memory ids = contractsSignedByAccount[_cuenta];
         Contrato[] memory resultado = new Contrato[](ids.length);
         
         for (uint256 i = 0; i < ids.length; i++) {
