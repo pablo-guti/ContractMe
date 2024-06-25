@@ -50,6 +50,9 @@ const ContentRowContratoFirmado = ({
           <Text style={[styles.rowDescription, styles.rowTypo]}>
             {fechaInicio}-{fechaFin}
           </Text>
+          <Text style={[styles.rowEstado, styles.estadoFirmado]}>
+            Estado: Firmado
+          </Text>
         </View>
       </View>
       <Image
@@ -139,6 +142,9 @@ const styles = StyleSheet.create({
     paddingVertical: Padding.p_xs,
     alignSelf: "stretch",
     flexDirection: "row",
+  },
+  estadoFirmado: {
+    color: "orange",
   },
 });
 
