@@ -12,7 +12,7 @@ import {
   Text,
   ScrollView,
   TextInput,
-  Platform,
+  Alert,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Image } from "expo-image";
@@ -156,35 +156,50 @@ const NuevoContrato = ({ route }) => {
     return true;
   };
 
-  async function handleCreateContract() {
+  const handleCreateContract = async () => {
     if (!validateForm()) {
       return;
     }
-    try {
-      let precioEnWei;
-      if (formData.moneda === "EUR") {
-        const precioEnEth = parseFloat(formData.precio) * eurToETH;
-        console.log(precioEnEth);
-        precioEnWei = Web3.utils.toWei(precioEnEth.toString(), "ether");
-      } else {
-        precioEnWei = Web3.utils.toWei(formData.precio, "ether");
-      }
 
-      await MyContract.methods
-        .crearContrato(
-          formData.tituloContrato,
-          formData.descripcionContrato,
-          precioEnWei,
-          formatDate(formData.fechaInicio),
-          formatDate(formData.fechaFin)
-        )
-        .send({ from: account, gas: "1000000" });
-      alert("Contrato creado");
-      navigation.navigate("Lista", { account: account });
-    } catch (error) {
-      alert("Error al crear el contrato");
-    }
-  }
+    Alert.alert(
+      "Confirmación",
+      "¿Está seguro de que desea crear el contrato?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Aceptar",
+          onPress: async () => {
+            try {
+              let precioEnWei;
+              if (formData.moneda === "EUR") {
+                const precioEnEth = parseFloat(formData.precio) * eurToETH;
+                precioEnWei = Web3.utils.toWei(precioEnEth.toString(), "ether");
+              } else {
+                precioEnWei = Web3.utils.toWei(formData.precio, "ether");
+              }
+
+              await MyContract.methods
+                .crearContrato(
+                  formData.tituloContrato,
+                  formData.descripcionContrato,
+                  precioEnWei,
+                  formatDate(formData.fechaInicio),
+                  formatDate(formData.fechaFin)
+                )
+                .send({ from: account, gas: "1000000" });
+              alert("Contrato creado");
+              navigation.navigate("Lista", { account: account });
+            } catch (error) {
+              alert("Error al crear el contrato");
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <View style={styles.nuevoContrato}>

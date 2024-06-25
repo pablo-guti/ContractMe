@@ -11,14 +11,43 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { FontFamily, Color, Border, FontSize, Padding } from "../GlobalStyles";
 
+const parseDateString = (dateString) => {
+  const [day, month, year] = dateString.split("/");
+  return new Date(year, month - 1, day);
+};
+
 const ContentRowContratoParaFirmar = ({
   titulo,
   fechaInicio,
   fechaFin,
   id,
   account,
+  estado,
 }) => {
   const navigation = useNavigation();
+
+  const now = new Date();
+  const fechaFinConverted = parseDateString(fechaFin);
+
+  const getEstadoStyle = (estado) => {
+    if (now > fechaFinConverted) {
+      estado = 3n;
+    }
+    switch (estado) {
+      case 0n:
+        return { style: styles.estadoActivo, text: "Activo" };
+      case 1n:
+        return { style: styles.estadoSolicitado, text: "Solicitado" };
+      case 2n:
+        return { style: styles.estadoFirmado, text: "Firmado" };
+      case 3n:
+        return { style: styles.estadoExpirado, text: "Expirado" };
+      default:
+        return { style: {}, text: "Desconocido" };
+    }
+  };
+
+  const { style: estadoStyle, text: estadoText } = getEstadoStyle(estado);
 
   return (
     <TouchableOpacity
@@ -49,6 +78,9 @@ const ContentRowContratoParaFirmar = ({
           <Text style={styles.rowHeadline}>{titulo}</Text>
           <Text style={[styles.rowDescription, styles.rowTypo]}>
             {fechaInicio}-{fechaFin}
+          </Text>
+          <Text style={[styles.rowEstado, estadoStyle]}>
+            Estado: {estadoText}
           </Text>
         </View>
       </View>
@@ -114,10 +146,24 @@ const styles = StyleSheet.create({
     fontSize: FontSize.paragraphRegularLarge_size,
     fontFamily: FontFamily.paragraphRegularSmall,
   },
-  rowHelperText: {
+  rowEstado: {
     fontSize: FontSize.paragraphRegularSmall_size,
     lineHeight: 20,
-    color: Color.colorLimegreen,
+    fontFamily: FontFamily.paragraphRegularSmall,
+    textAlign: "left",
+    alignSelf: "stretch",
+  },
+  estadoActivo: {
+    color: "green",
+  },
+  estadoFirmado: {
+    color: "orange",
+  },
+  estadoExpirado: {
+    color: "red",
+  },
+  estadoSolicitado: {
+    color: "blue",
   },
   copy: {
     justifyContent: "center",

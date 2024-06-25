@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { Alert } from "react-native";
 import { WEB3_PROVIDER_URL } from "../global";
 import {
   StyleSheet,
@@ -40,6 +41,7 @@ const Firmar = ({ route }) => {
   const [moneda, setMoneda] = useState("ETH");
   const [ethToEurRate, setEthToEurRate] = useState(null);
   const [estado, setEstado] = useState("");
+  const [contrato, setContrato] = useState(null);
 
   const connectToBlockchain = useCallback(async () => {
     try {
@@ -51,7 +53,7 @@ const Firmar = ({ route }) => {
         network && network.address
       );
       const contrato = await contract.methods.getContrato(idContrato).call();
-
+      setContrato(contrato);
       // Obtener la dirección del propietario del contrato
       const owner = await contract.methods.getOwner(idContrato).call();
       setOwner(owner);
@@ -61,7 +63,7 @@ const Firmar = ({ route }) => {
       const users = storedUsers ? JSON.parse(storedUsers) : [];
       const ownerUserInfo = users.find((user) => user.account === owner);
       const firmanteUserInfo = users.find(
-        (user) => user.account === contrato.firmante
+        (user) => user.account === contrato.solicitante
       );
 
       setOwnerInfo(ownerUserInfo);
@@ -73,20 +75,20 @@ const Firmar = ({ route }) => {
       const precioEnEth = Web3.utils.fromWei(contrato.precio, "ether");
       setPrecio(precioEnEth); // Convertir de Wei a Ether
       setDescripcion(contrato.descripcion);
-      setFirmante(contrato.firmante);
+      setFirmante(contrato.solicitante);
 
       const now = new Date();
       const fechaInicio = parseDateString(contrato["fechaInicio"]);
       const fechaFin = parseDateString(contrato["fechaFin"]);
       let estado;
 
-      if (
-        contrato["firmante"] !== "0x0000000000000000000000000000000000000000"
-      ) {
+      if (contrato["estado"] == 2n) {
         estado = "firmado";
       } else if (now > fechaFin) {
         estado = "expirado";
-      } else {
+      } else if (contrato["estado"] == 1n) {
+        estado = "solicitado";
+      } else if (contrato["estado"] == 0n) {
         estado = "activo";
       }
       setEstado(estado);
@@ -115,35 +117,60 @@ const Firmar = ({ route }) => {
   }, [fetchEthToEurRate]);
 
   const handleFirmar = async () => {
-    if (firmante !== "0x0000000000000000000000000000000000000000") {
-      alert("El contrato ya ha sido firmado");
+    if (estado == "solicitado") {
+      Alert.alert("Error", "El contrato ya ha sido solicitado");
       return;
     }
 
-    if (estado != "activo") {
-      alert("El contrato esta expirado");
+    if (estado == "firmado") {
+      Alert.alert("Error", "El contrato ya ha sido firmado");
       return;
     }
 
-    try {
-      const web3 = new Web3(new Web3.providers.HttpProvider(WEB3_PROVIDER_URL));
-      const networkID = await web3.eth.net.getId();
-      const network = MyContract.networks[networkID];
-      const contract = new web3.eth.Contract(
-        MyContract.abi,
-        network && network.address
-      );
-      const precioEnWei = Web3.utils.toWei(precio, "ether");
-      await contract.methods.firmarContrato(idContrato).send({
-        from: userAccount,
-        value: precioEnWei,
-        gas: "1000000",
-      });
-      alert("Contrato firmado exitosamente");
-      connectToBlockchain(); // Refresh the contract details
-    } catch (error) {
-      alert("Error al firmar el contrato");
+    if (estado == "expirado") {
+      Alert.alert("Error", "El contrato esta expirado");
+      return;
     }
+
+    Alert.alert(
+      "Confirmación",
+      "¿Estás seguro de que deseas solicitar la firma de este contrato?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Aceptar",
+          onPress: async () => {
+            try {
+              // Aquí deberías guardar en el contrato que se ha solicitado la firma
+              const web3 = new Web3(
+                new Web3.providers.HttpProvider(WEB3_PROVIDER_URL)
+              );
+              const networkID = await web3.eth.net.getId();
+              const network = MyContract.networks[networkID];
+              const contract = new web3.eth.Contract(
+                MyContract.abi,
+                network && network.address
+              );
+
+              await contract.methods.solicitarFirma(idContrato).send({
+                from: userAccount,
+                gas: "1000000",
+              });
+
+              Alert.alert("Éxito", "Firma solicitada exitosamente");
+              connectToBlockchain(); // Refresh the contract details
+              console.log(contrato);
+            } catch (error) {
+              console.log(error);
+              Alert.alert("Error", "Error al solicitar la firma del contrato");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleMonedaChange = (moneda) => {
@@ -170,6 +197,8 @@ const Firmar = ({ route }) => {
         return styles.estadoFirmado;
       case "expirado":
         return styles.estadoExpirado;
+      case "solicitado":
+        return styles.estadoSolicitado;
       default:
         return {};
     }
@@ -336,23 +365,46 @@ const Firmar = ({ route }) => {
               )}
             </Text>
           </View>
+
           <View style={styles.separator} />
-          <View style={styles.userInfoBlock}>
-            <Text style={styles.userInfoTitle}>Firmante</Text>
-            <Text style={styles.userInfoText}>
-              {firmante === "0x0000000000000000000000000000000000000000" ? (
-                "No firmado aún"
-              ) : firmanteInfo ? (
-                <>
-                  Usuario: {firmanteInfo.username} {"\n"}
-                  DNI: {firmanteInfo.dni} {"\n"}
-                  Dirección: {firmanteInfo.account}
-                </>
-              ) : (
-                "Información no disponible"
-              )}
-            </Text>
-          </View>
+
+          {estado != "firmado" && (
+            <View style={styles.userInfoBlock}>
+              <Text style={styles.userInfoTitle}>Solicitante</Text>
+              <Text style={styles.userInfoText}>
+                {firmante === "0x0000000000000000000000000000000000000000" ? (
+                  "No solicitado ni firmado aún"
+                ) : firmanteInfo ? (
+                  <>
+                    Usuario: {firmanteInfo.username} {"\n"}
+                    DNI: {firmanteInfo.dni} {"\n"}
+                    Dirección: {firmanteInfo.account}
+                  </>
+                ) : (
+                  "Información no disponible"
+                )}
+              </Text>
+            </View>
+          )}
+
+          {estado == "firmado" && (
+            <View style={styles.userInfoBlock}>
+              <Text style={styles.userInfoTitle}>Firmante</Text>
+              <Text style={styles.userInfoText}>
+                {firmante === "0x0000000000000000000000000000000000000000" ? (
+                  "No solicitado ni firmado aún"
+                ) : firmanteInfo ? (
+                  <>
+                    Usuario: {firmanteInfo.username} {"\n"}
+                    DNI: {firmanteInfo.dni} {"\n"}
+                    Dirección: {firmanteInfo.account}
+                  </>
+                ) : (
+                  "Información no disponible"
+                )}
+              </Text>
+            </View>
+          )}
         </View>
         <View style={[styles.frame5, styles.frameFlexBox]}>
           <LinearGradient
@@ -361,7 +413,9 @@ const Firmar = ({ route }) => {
             colors={["#9b40bf", "#f344f7"]}
           >
             <Pressable style={styles.pressable} onPress={handleFirmar}>
-              <Text style={[styles.buttonText, styles.label1Typo]}>Firmar</Text>
+              <Text style={[styles.buttonText, styles.label1Typo]}>
+                Solicitar Firma
+              </Text>
             </Pressable>
           </LinearGradient>
         </View>
@@ -657,6 +711,11 @@ const styles = StyleSheet.create({
   },
   estadoExpirado: {
     color: "red",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  estadoSolicitado: {
+    color: "blue",
     fontSize: 16,
     fontWeight: "bold",
   },

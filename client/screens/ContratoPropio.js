@@ -8,7 +8,6 @@ import {
   Text,
   ScrollView,
   TextInput,
-  Platform,
   Alert,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -26,12 +25,13 @@ const API_URL =
 
 const EUR_TO_ETH_RATE = 0.00028; // Ejemplo: 1 EUR = 0.00042 ETH
 
-const Modificar = ({ route }) => {
+const ContratoPropio = ({ route }) => {
   const [firmante, setFirmante] = useState("");
   const [owner, setOwner] = useState("");
   const [ownerInfo, setOwnerInfo] = useState(null);
   const [firmanteInfo, setFirmanteInfo] = useState(null);
   const [estado, setEstado] = useState("");
+  const [contrato, setContrato] = useState("");
 
   /*Conexion a la blockchain*/
   const connectToBlockchain = useCallback(async () => {
@@ -50,6 +50,8 @@ const Modificar = ({ route }) => {
         (c) => c.id === BigInt(idContrato)
       );
 
+      setContrato(contrato);
+
       // Obtener la dirección del propietario del contrato
       const owner = await contract.methods.getOwner(idContrato).call();
       setOwner(owner);
@@ -59,27 +61,28 @@ const Modificar = ({ route }) => {
       const users = storedUsers ? JSON.parse(storedUsers) : [];
       const ownerUserInfo = users.find((user) => user.account === owner);
       const firmanteUserInfo = users.find(
-        (user) => user.account === contrato.firmante
+        (user) => user.account === contrato.solicitante
       );
 
       setOwnerInfo(ownerUserInfo);
       setFirmanteInfo(firmanteUserInfo);
-      setFirmante(contrato["firmante"]);
+      setFirmante(contrato["solicitante"]);
 
-      const now = new Date() + 1;
+      const now = new Date();
       const fechaInicio = parseDateString(contrato["fechaInicio"]);
       const fechaFin = parseDateString(contrato["fechaFin"]);
       let estado;
 
-      if (
-        contrato["firmante"] !== "0x0000000000000000000000000000000000000000"
-      ) {
+      if (contrato["estado"] == 2n) {
         estado = "firmado";
       } else if (now > fechaFin) {
         estado = "expirado";
-      } else {
+      } else if (contrato["estado"] == 1n) {
+        estado = "solicitado";
+      } else if (contrato["estado"] == 0n) {
         estado = "activo";
       }
+
       setEstado(estado);
 
       setFormData({
@@ -203,42 +206,144 @@ const Modificar = ({ route }) => {
       return;
     }
 
-    try {
-      const web3 = new Web3(new Web3.providers.HttpProvider(WEB3_PROVIDER_URL));
-      const networkID = await web3.eth.net.getId();
-      const network = MyContract.networks[networkID];
-      const contract = new web3.eth.Contract(
-        MyContract.abi,
-        network && network.address
-      );
+    Alert.alert(
+      "Confirmación",
+      "¿Está seguro de que desea modificar el contrato?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Aceptar",
+          onPress: async () => {
+            try {
+              const web3 = new Web3(
+                new Web3.providers.HttpProvider(WEB3_PROVIDER_URL)
+              );
+              const networkID = await web3.eth.net.getId();
+              const network = MyContract.networks[networkID];
+              const contract = new web3.eth.Contract(
+                MyContract.abi,
+                network && network.address
+              );
 
-      let precioEnWei;
-      let precioFinal = parseFloat(formData.precio).toString();
+              let precioEnWei;
+              let precioFinal = parseFloat(formData.precio).toString();
 
-      if (formData.moneda === "EUR") {
-        const precioEnEth = parseFloat(precioFinal) * eurToETH;
-        precioEnWei = Web3.utils.toWei(precioEnEth.toString(), "ether");
-      } else {
-        precioEnWei = Web3.utils.toWei(precioFinal, "ether");
-      }
+              if (formData.moneda === "EUR") {
+                const precioEnEth = parseFloat(precioFinal) * eurToETH;
+                precioEnWei = Web3.utils.toWei(precioEnEth.toString(), "ether");
+              } else {
+                precioEnWei = Web3.utils.toWei(precioFinal, "ether");
+              }
 
-      await contract.methods
-        .modificarContrato(
-          idContrato,
-          formData.titulo,
-          formData.descripcion,
-          precioEnWei,
-          formatDateString(formData.fechaInicio),
-          formatDateString(formData.fechaFin)
-        )
-        .send({ from: account, gas: "1000000" });
+              await contract.methods
+                .modificarContrato(
+                  idContrato,
+                  formData.titulo,
+                  formData.descripcion,
+                  precioEnWei,
+                  formatDateString(formData.fechaInicio),
+                  formatDateString(formData.fechaFin)
+                )
+                .send({ from: account, gas: "1000000" });
 
-      alert("Contrato modificado exitosamente");
-      navigation.navigate("Lista", { account });
-    } catch (error) {
-      console.error("Error al modificar el contrato:", error);
-      alert("Error al modificar el contrato");
-    }
+              alert("Contrato modificado exitosamente");
+              console.log(contrato);
+              navigation.navigate("Lista", { account });
+            } catch (error) {
+              console.error("Error al modificar el contrato:", error);
+              alert("Error al modificar el contrato");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleAceptarFirma = async () => {
+    Alert.alert(
+      "Confirmación",
+      "¿Está seguro de que desea aceptar la firma del contrato?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Aceptar",
+          onPress: async () => {
+            try {
+              const web3 = new Web3(
+                new Web3.providers.HttpProvider(WEB3_PROVIDER_URL)
+              );
+              const networkID = await web3.eth.net.getId();
+              const network = MyContract.networks[networkID];
+              const contract = new web3.eth.Contract(
+                MyContract.abi,
+                network && network.address
+              );
+              const precioEnWei = Web3.utils.toWei(formData.precio, "ether");
+              await contract.methods.firmarContrato(idContrato, firmante).send({
+                from: account,
+                value: precioEnWei,
+                gas: "1000000",
+              });
+
+              alert("Contrato firmado exitosamente");
+              connectToBlockchain();
+
+              navigation.navigate("Lista", { account });
+            } catch (error) {
+              console.error("Error al firmar el contrato:", error);
+              alert("Error al firmar el contrato");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleRechazarFirma = async () => {
+    Alert.alert(
+      "Confirmación",
+      "¿Está seguro de que desea rechazar la firma del contrato?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Aceptar",
+          onPress: async () => {
+            try {
+              const web3 = new Web3(
+                new Web3.providers.HttpProvider(WEB3_PROVIDER_URL)
+              );
+              const networkID = await web3.eth.net.getId();
+              const network = MyContract.networks[networkID];
+              const contract = new web3.eth.Contract(
+                MyContract.abi,
+                network && network.address
+              );
+              await contract.methods.rechazarFirma(idContrato).send({
+                from: account,
+                gas: "1000000",
+              });
+
+              alert("Firma rechazada exitosamente");
+              connectToBlockchain();
+
+              navigation.navigate("Lista", { account });
+            } catch (error) {
+              console.error("Error al rechazar la firma del contrato:", error);
+              alert("Error al rechazar la firma del contrato");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const getEstadoStyle = (estado) => {
@@ -249,6 +354,8 @@ const Modificar = ({ route }) => {
         return styles.estadoFirmado;
       case "expirado":
         return styles.estadoExpirado;
+      case "solicitado":
+        return styles.estadoSolicitado;
       default:
         return {};
     }
@@ -272,7 +379,9 @@ const Modificar = ({ route }) => {
           </TouchableOpacity>
           <View style={styles.frame}>
             <Text style={[styles.pageTitle, styles.label1FlexBox]}>
-              Modificación de Contrato
+              {estado === "solicitado"
+                ? "Firma de Contrato"
+                : "Contrato Propio"}
             </Text>
           </View>
         </View>
@@ -295,9 +404,10 @@ const Modificar = ({ route }) => {
               <Text style={[styles.label1, styles.label1Typo]}>Titulo</Text>
             </View>
             <TextInput
-              style={[styles.baseInputField, styles.baseSpaceBlock]}
+              style={[styles.baseInputField1, styles.baseSpaceBlock]}
               value={formData.titulo}
               onChangeText={(text) => handleInputChange("titulo", text)}
+              editable={estado !== "solicitado" && estado !== "firmado"}
             />
           </View>
         </View>
@@ -308,13 +418,21 @@ const Modificar = ({ route }) => {
                 Fecha inicio
               </Text>
             </View>
-            <TouchableOpacity onPress={() => setShowInicioPicker(true)}>
+            {estado !== "solicitado" && estado !== "firmado" ? (
+              <TouchableOpacity onPress={() => setShowInicioPicker(true)}>
+                <TextInput
+                  style={[styles.baseInputField1, styles.baseSpaceBlock]}
+                  value={formatDateString(formData.fechaInicio)}
+                  editable={false}
+                />
+              </TouchableOpacity>
+            ) : (
               <TextInput
                 style={[styles.baseInputField1, styles.baseSpaceBlock]}
                 value={formatDateString(formData.fechaInicio)}
                 editable={false}
               />
-            </TouchableOpacity>
+            )}
             {showInicioPicker && (
               <DateTimePicker
                 value={formData.fechaInicio}
@@ -334,13 +452,21 @@ const Modificar = ({ route }) => {
             <View style={styles.label}>
               <Text style={[styles.label1, styles.label1Typo]}>Fecha fin</Text>
             </View>
-            <TouchableOpacity onPress={() => setShowFinPicker(true)}>
+            {estado !== "solicitado" && estado !== "firmado" ? (
+              <TouchableOpacity onPress={() => setShowFinPicker(true)}>
+                <TextInput
+                  style={[styles.baseInputField1, styles.baseSpaceBlock]}
+                  value={formatDateString(formData.fechaFin)}
+                  editable={false}
+                />
+              </TouchableOpacity>
+            ) : (
               <TextInput
                 style={[styles.baseInputField1, styles.baseSpaceBlock]}
                 value={formatDateString(formData.fechaFin)}
                 editable={false}
               />
-            </TouchableOpacity>
+            )}
             {showFinPicker && (
               <DateTimePicker
                 value={formData.fechaFin}
@@ -367,6 +493,7 @@ const Modificar = ({ route }) => {
               value={displayPrecio()}
               onChangeText={(text) => handleInputChange("precio", text)}
               keyboardType="numeric"
+              editable={estado !== "solicitado" && estado !== "firmado"}
             />
           </View>
         </View>
@@ -382,48 +509,51 @@ const Modificar = ({ route }) => {
               value={formData.descripcion}
               onChangeText={(text) => handleInputChange("descripcion", text)}
               multiline={true}
+              editable={estado !== "solicitado" && estado !== "firmado"}
             />
           </View>
         </View>
-        <View style={[styles.frame5, styles.frameFlexBox]}>
-          <View style={styles.label}>
-            <Text style={[styles.label1, styles.label1Typo]}>Moneda</Text>
-          </View>
-          <View style={styles.monedaSelector}>
-            <TouchableOpacity
-              style={[
-                styles.monedaButton,
-                formData.moneda === "EUR" ? styles.selectedButton : {},
-              ]}
-              onPress={() => handleMonedaChange("EUR")}
-            >
-              <Text
+        {estado !== "solicitado" && estado !== "firmado" && (
+          <View style={[styles.frame5, styles.frameFlexBox]}>
+            <View style={styles.label}>
+              <Text style={[styles.label1, styles.label1Typo]}>Moneda</Text>
+            </View>
+            <View style={styles.monedaSelector}>
+              <TouchableOpacity
                 style={[
-                  styles.monedaButtonText,
-                  formData.moneda === "EUR" ? styles.selectedButtonText : {},
+                  styles.monedaButton,
+                  formData.moneda === "EUR" ? styles.selectedButton : {},
                 ]}
+                onPress={() => handleMonedaChange("EUR")}
               >
-                EUR
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.monedaButton,
-                formData.moneda === "ETH" ? styles.selectedButton : {},
-              ]}
-              onPress={() => handleMonedaChange("ETH")}
-            >
-              <Text
+                <Text
+                  style={[
+                    styles.monedaButtonText,
+                    formData.moneda === "EUR" ? styles.selectedButtonText : {},
+                  ]}
+                >
+                  EUR
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={[
-                  styles.monedaButtonText,
-                  formData.moneda === "ETH" ? styles.selectedButtonText : {},
+                  styles.monedaButton,
+                  formData.moneda === "ETH" ? styles.selectedButton : {},
                 ]}
+                onPress={() => handleMonedaChange("ETH")}
               >
-                ETH
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={[
+                    styles.monedaButtonText,
+                    formData.moneda === "ETH" ? styles.selectedButtonText : {},
+                  ]}
+                >
+                  ETH
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        )}
         <View style={styles.userInfoSection}>
           <View style={styles.separator} />
           <View style={styles.userInfoBlock}>
@@ -444,7 +574,42 @@ const Modificar = ({ route }) => {
           </View>
         </View>
 
-        {estado != "firmado" && (
+        {estado === "solicitado" ? (
+          <>
+            <View style={[styles.frame5, styles.frameFlexBox]}>
+              <LinearGradient
+                style={styles.baseButton}
+                locations={[0, 1]}
+                colors={["#9b40bf", "#f344f7"]}
+              >
+                <Pressable
+                  style={styles.pressable}
+                  onPress={handleAceptarFirma}
+                >
+                  <Text style={[styles.buttonText, styles.label1Typo]}>
+                    Aceptar Firma
+                  </Text>
+                </Pressable>
+              </LinearGradient>
+            </View>
+            <View style={[styles.frame5, styles.frameFlexBox]}>
+              <LinearGradient
+                style={[styles.baseButton, styles.rechazarButton]}
+                locations={[0, 1]}
+                colors={["#ff0000", "#ff4d4d"]}
+              >
+                <Pressable
+                  style={styles.pressable}
+                  onPress={handleRechazarFirma}
+                >
+                  <Text style={[styles.buttonText, styles.label1Typo]}>
+                    Rechazar Firma
+                  </Text>
+                </Pressable>
+              </LinearGradient>
+            </View>
+          </>
+        ) : estado === "activo" || estado === "expirado" ? (
           <View style={[styles.frame5, styles.frameFlexBox]}>
             <LinearGradient
               style={styles.baseButton}
@@ -458,7 +623,7 @@ const Modificar = ({ route }) => {
               </Pressable>
             </LinearGradient>
           </View>
-        )}
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -658,6 +823,7 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     overflow: "hidden",
     flex: 1,
+    color: "#666",
   },
   textInput4: {
     alignSelf: "stretch",
@@ -754,6 +920,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  estadoSolicitado: {
+    color: "blue",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 });
 
-export default Modificar;
+export default ContratoPropio;

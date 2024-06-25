@@ -10,7 +10,7 @@ import Lista from "./screens/Main";
 import SignIn from "./screens/SignIn";
 import Firmar from "./screens/Firmar";
 import Firmado from "./screens/Firmado";
-import Modificar from "./screens/Modificar";
+import ContratoPropio from "./screens/ContratoPropio";
 import NuevoContrato from "./screens/NuevoContrato";
 import MIcon from "react-native-vector-icons/MaterialCommunityIcons";
 import { IconRegistry, ApplicationProvider } from "@ui-kitten/components";
@@ -118,8 +118,8 @@ const App = () => {
                 options={{ headerShown: false }}
               />
               <Stack.Screen
-                name="Modificar"
-                component={Modificar}
+                name="ContratoPropio"
+                component={ContratoPropio}
                 options={{ headerShown: false }}
               />
               <Stack.Screen

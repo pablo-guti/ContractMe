@@ -11,10 +11,11 @@ contract MyContract {
         uint256 precio;
         string fechaInicio;
         string fechaFin;
+        address solicitante;
         address firmante;
     }
 
-    enum EstadoContrato {  Activo, Firmado, Expirado }
+    enum EstadoContrato {  Activo, Solicitado, Firmado, Expirado }
     Contrato[] public contratos; 
     
     mapping (uint => address) public contractOwner;
@@ -25,26 +26,27 @@ contract MyContract {
     event ContratoCreado(uint indexed id, string titulo, string descripcion, address ownerAddress, uint256 precio, string fechaInicio, string fechaFin);
     event ContratoModificado(uint indexed id, string nuevoTitulo, string nuevaDescripcion, uint256 nuevoPrecio, string nuevaFechaInicio, string nuevaFechaFin);
     event ContratoFirmado(uint indexed id, address firmante);
+    event FirmaSolicitada(uint indexed id, address firmante);
+    event FirmaRechazada(uint indexed id);
 
 
     //Crear, modificar y firmar contratos
     function crearContrato(string memory _titulo, string memory _descripcion, uint256 _precio, string memory _fechaInicio, string memory _fechaFin) public {
         require(_precio > 0, "El precio es igual o inferior a cero");
         uint _id = contratos.length;
-        contratos.push(Contrato(_id, _titulo, _descripcion, EstadoContrato.Activo, _precio, _fechaInicio, _fechaFin, address(0)));
+        contratos.push(Contrato(_id, _titulo, _descripcion, EstadoContrato.Activo, _precio, _fechaInicio, _fechaFin, address(0),address(0)));
         contractOwner[_id] = msg.sender;
         ownerCount[contractOwner[_id]]++;
         emit ContratoCreado(_id, _titulo, _descripcion, contractOwner[_id], _precio, _fechaInicio, _fechaFin);
     }
 
-    function firmarContrato(uint _id) public payable {
+    function firmarContrato(uint _id, address firmante) public payable {
         Contrato storage contrato = contratos[_id];
-        require(contrato.firmante == address(0), "El contrato ya ha sido firmado");
         require(msg.value == contrato.precio, "El monto enviado no coincide con el precio del contrato");
-        contrato.firmante = msg.sender;
         contrato.estado = EstadoContrato.Firmado;
-        contractsSignedByAccount[msg.sender].push(_id);
-        payable(contractOwner[_id]).transfer(msg.value);
+        contrato.firmante = contrato.solicitante;
+        contractsSignedByAccount[firmante].push(_id);
+        payable(firmante).transfer(msg.value);
         emit ContratoFirmado(_id, msg.sender);
     }
 
@@ -61,6 +63,23 @@ contract MyContract {
 
         emit ContratoModificado(_id, _nuevoTitulo, _nuevaDescripcion, _nuevoPrecio, _nuevaFechaInicio, _nuevaFechaFin);
     }
+
+    function solicitarFirma(uint _id) public {
+        Contrato storage contrato = contratos[_id];
+        contrato.estado = EstadoContrato.Solicitado;
+        contrato.solicitante = msg.sender;
+        emit ContratoFirmado(_id, msg.sender);
+
+    }
+
+     function rechazarFirma(uint _id) public {
+        Contrato storage contrato = contratos[_id];
+        contrato.estado = EstadoContrato.Activo;
+        contrato.solicitante = address(0);
+        emit FirmaRechazada(_id);
+
+    }
+
 
     /*************************************************************/
 
@@ -158,6 +177,8 @@ contract MyContract {
     function existenContratosParaOwner(address owner) public view returns (bool) {
         return ownerCount[owner] > 0;
     }
+
+     
 
 
 }

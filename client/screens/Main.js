@@ -13,9 +13,9 @@ import Web3 from "web3";
 import MyContract from "../contracts/MyContract.json";
 import { Image } from "expo-image";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import ContentRowContratoPropio from "../components/ContentRowContratoPropio";
-import ContentRowContratoParaFirmar from "../components/ContentRowContratoParaFirmar";
-import ContentRowContratoFirmado from "../components/ContentRowContratoFirmado";
+import ContentRowContratoPropio from "../rowComponents/ContentRowContratoPropio";
+import ContentRowContratoParaFirmar from "../rowComponents/ContentRowContratoParaFirmar";
+import ContentRowContratoFirmado from "../rowComponents/ContentRowContratoFirmado";
 import { FontFamily, Color, Padding, Border, FontSize } from "../GlobalStyles";
 
 const Main = ({ route }) => {
@@ -109,6 +109,7 @@ const Main = ({ route }) => {
                 fechaFin={contract["fechaFin"]}
                 id={contract["id"]}
                 account={account}
+                estado={contract["estado"]}
               />
             ))}
           </ScrollView>
@@ -132,6 +133,7 @@ const Main = ({ route }) => {
                 fechaFin={contract["fechaFin"]}
                 id={contract["id"]}
                 account={account}
+                estado={contract["estado"]}
               />
             ))}
           </ScrollView>
