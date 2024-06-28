@@ -250,7 +250,6 @@ const ContratoPropio = ({ route }) => {
                 .send({ from: account, gas: "1000000" });
 
               alert("Contrato modificado exitosamente");
-              console.log(contrato);
               navigation.navigate("Lista", { account });
             } catch (error) {
               console.error("Error al modificar el contrato:", error);
@@ -505,7 +504,11 @@ const ContratoPropio = ({ route }) => {
               </Text>
             </View>
             <TextInput
-              style={[styles.baseInputField4, styles.baseSpaceBlock]}
+              style={[
+                styles.baseInputField4,
+                styles.baseSpaceBlock,
+                { textAlign: "left" },
+              ]}
               value={formData.descripcion}
               onChangeText={(text) => handleInputChange("descripcion", text)}
               multiline={true}
@@ -824,6 +827,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     flex: 1,
     color: "#666",
+    textAlign: "left",
   },
   textInput4: {
     alignSelf: "stretch",

@@ -1,5 +1,6 @@
 import "../global";
 import { WEB3_PROVIDER_URL } from "../global";
+import { exampleContracts } from "../contratosEjemplo";
 import "react-native-get-random-values";
 import React, { useState, useEffect, useCallback } from "react";
 import Web3, { ETH_DATA_FORMAT } from "web3";
@@ -200,6 +201,63 @@ const NuevoContrato = ({ route }) => {
       ]
     );
   };
+
+  const handleGenerateExampleContracts = async () => {
+    for (let formData of exampleContracts) {
+      const descriptionFragments = dividirDescripcion(
+        formData.descripcionContrato,
+        32
+      );
+
+      try {
+        let precioEnWei;
+
+        if (formData.moneda === "EUR") {
+          const precioEnEth = parseFloat(formData.precio) * eurToETH;
+          precioEnWei = Web3.utils.toWei(precioEnEth.toString(), "ether");
+        } else {
+          precioEnWei = Web3.utils.toWei(formData.precio, "ether");
+        }
+
+        const gasEstimate = await MyContract.methods
+          .crearContrato(
+            formData.tituloContrato,
+            formData.descripcionContrato,
+            precioEnWei,
+            formatDate(formData.fechaInicio),
+            formatDate(formData.fechaFin)
+          )
+          .estimateGas({ from: account });
+
+        await MyContract.methods
+          .crearContrato(
+            formData.tituloContrato,
+            formData.descripcionContrato,
+            precioEnWei,
+            formatDate(formData.fechaInicio),
+            formatDate(formData.fechaFin)
+          )
+          .send({ from: account, gas: gasEstimate });
+
+        console.log(
+          `Contrato "${formData.tituloContrato}" creado exitosamente.`
+        );
+      } catch (error) {
+        console.error(
+          `Error al crear el contrato "${formData.tituloContrato}":`,
+          error
+        );
+      }
+    }
+  };
+
+  function dividirDescripcion(descripcion, fragmentSize) {
+    const fragments = [];
+    for (let i = 0; i < descripcion.length; i += fragmentSize) {
+      fragments.push(descripcion.substring(i, i + fragmentSize));
+    }
+    return fragments;
+  }
 
   return (
     <View style={styles.nuevoContrato}>
