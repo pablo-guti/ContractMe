@@ -162,7 +162,6 @@ const Firmar = ({ route }) => {
 
               Alert.alert("Éxito", "Firma solicitada exitosamente");
               connectToBlockchain(); // Refresh the contract details
-              console.log(contrato);
             } catch (error) {
               console.log(error);
               Alert.alert("Error", "Error al solicitar la firma del contrato");

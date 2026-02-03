@@ -5,10 +5,6 @@ export const exampleContracts = [
     fechaFin: new Date("2024-12-31"),
     precio: "30000",
     descripcionContrato:
-      "Este contrato laboral se celebra entre [Nombre de la Empresa], con domicilio en [Dirección de la Empresa],\n" +
-      "representada en este acto por [Nombre del Representante], en su carácter de [Cargo del Representante],\n" +
-      'quien en adelante se denominará "El Empleador", y [Nombre del Empleado], con DNI [Número de DNI],\n' +
-      'quien en adelante se denominará "El Empleado".\n\n' +
       "El objetivo de este contrato es establecer los términos y condiciones bajo los cuales El Empleado\n" +
       "prestará sus servicios como Desarrollador de Software para El Empleador. Las principales responsabilidades\n" +
       "del Empleado incluirán:\n\n" +
@@ -28,10 +24,6 @@ export const exampleContracts = [
     fechaFin: new Date("2025-01-31"),
     precio: "45000",
     descripcionContrato:
-      "Este contrato laboral se celebra entre [Nombre de la Empresa], con domicilio en [Dirección de la Empresa],\n" +
-      "representada en este acto por [Nombre del Representante], en su carácter de [Cargo del Representante],\n" +
-      'quien en adelante se denominará "El Empleador", y [Nombre del Empleado], con DNI [Número de DNI],\n' +
-      'quien en adelante se denominará "El Empleado".\n\n' +
       "El objetivo de este contrato es definir los términos y condiciones bajo los cuales El Empleado prestará\n" +
       "sus servicios como Consultor en Transformación Digital para El Empleador. Las principales responsabilidades\n" +
       "del Empleado incluirán:\n\n" +
@@ -52,10 +44,6 @@ export const exampleContracts = [
     fechaFin: new Date("2025-03-31"),
     precio: "60000",
     descripcionContrato:
-      "Este contrato laboral se celebra entre [Nombre de la Empresa], con domicilio en [Dirección de la Empresa],\n" +
-      "representada en este acto por [Nombre del Representante], en su carácter de [Cargo del Representante],\n" +
-      'quien en adelante se denominará "El Empleador", y [Nombre del Empleado], con DNI [Número de DNI],\n' +
-      'quien en adelante se denominará "El Empleado".\n\n' +
       "El objetivo de este contrato es definir los términos y condiciones bajo los cuales El Empleado prestará\n" +
       "sus servicios como Gerente de Proyecto para El Empleador. Las principales responsabilidades del Empleado\n" +
       "incluirán:\n\n" +
@@ -77,10 +65,6 @@ export const exampleContracts = [
     fechaFin: new Date("2025-04-30"),
     precio: "35000",
     descripcionContrato:
-      "Este contrato laboral se celebra entre [Nombre de la Empresa], con domicilio en [Dirección de la Empresa],\n" +
-      "representada en este acto por [Nombre del Representante], en su carácter de [Cargo del Representante],\n" +
-      'quien en adelante se denominará "El Empleador", y [Nombre del Empleado], con DNI [Número de DNI],\n' +
-      'quien en adelante se denominará "El Empleado".\n\n' +
       "El objetivo de este contrato es establecer los términos y condiciones bajo los cuales El Empleado prestará\n" +
       "sus servicios como Analista de Datos para El Empleador. Las principales responsabilidades del Empleado\n" +
       "incluirán:\n\n" +
@@ -102,10 +86,6 @@ export const exampleContracts = [
     fechaFin: new Date("2025-05-31"),
     precio: "40000",
     descripcionContrato:
-      "Este contrato laboral se celebra entre [Nombre de la Empresa], con domicilio en [Dirección de la Empresa],\n" +
-      "representada en este acto por [Nombre del Representante], en su carácter de [Cargo del Representante],\n" +
-      'quien en adelante se denominará "El Empleador", y [Nombre del Empleado], con DNI [Número de DNI],\n' +
-      'quien en adelante se denominará "El Empleado".\n\n' +
       "El objetivo de este contrato es establecer los términos y condiciones bajo los cuales El Empleado prestará\n" +
       "sus servicios como Diseñador UX/UI para El Empleador. Las principales responsabilidades del Empleado\n" +
       "incluirán:\n\n" +

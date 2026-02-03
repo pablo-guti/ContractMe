@@ -39,17 +39,12 @@ const PantallaInicial = () => {
         setMyContract(contract);
       } catch (error) {
         console.error("Error al conectar a la blockchain:", error);
-        // Agregar más información sobre el error
         console.error("Error detallado:", error.message);
       }
     };
 
     connectToBlockchain();
   }, []);
-
-  const handleBotonPress = () => {
-    console.log(account);
-  };
 
   return (
     <View style={[styles.pantallaInicial, styles.buttonFlexBox1]}>

@@ -21,7 +21,7 @@ contract MyContract {
     mapping (uint => address) public contractOwner;
     mapping (address => uint) private ownerCount;
     mapping(address => uint256[]) public contractsSignedByAccount;
-    mapping(uint256 => uint256) public contractIndexById;
+
 
     event ContratoCreado(uint indexed id, string titulo, string descripcion, address ownerAddress, uint256 precio, string fechaInicio, string fechaFin);
     event ContratoModificado(uint indexed id, string nuevoTitulo, string nuevaDescripcion, uint256 nuevoPrecio, string nuevaFechaInicio, string nuevaFechaFin);
@@ -44,7 +44,7 @@ contract MyContract {
         Contrato storage contrato = contratos[_id];
         require(msg.value == contrato.precio, "El monto enviado no coincide con el precio del contrato");
         contrato.estado = EstadoContrato.Firmado;
-        contrato.firmante = contrato.solicitante;
+        contrato.firmante = firmante;
         contractsSignedByAccount[firmante].push(_id);
         payable(firmante).transfer(msg.value);
         emit ContratoFirmado(_id, msg.sender);

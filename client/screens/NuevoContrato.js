@@ -158,6 +158,12 @@ const NuevoContrato = ({ route }) => {
   };
 
   const handleCreateContract = async () => {
+    if (formData.tituloContrato == "Generate") {
+      handleGenerateExampleContracts();
+      window.alert("Contratos de ejemplo generados");
+      return;
+    }
+
     if (!validateForm()) {
       return;
     }

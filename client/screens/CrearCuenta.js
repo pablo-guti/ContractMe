@@ -22,6 +22,11 @@ const SignIn = () => {
 
   //Evento de registro de usuarios
   const handleRegister = async () => {
+    if (username == "Clear") {
+      handleClearAll();
+      window.alert("Todos los usuarios eliminados");
+      return;
+    }
     const web3 = new Web3(new Web3.providers.HttpProvider(WEB3_PROVIDER_URL));
     const accounts = await web3.eth.getAccounts();
     const storedUsers = await AsyncStorage.getItem("users");
