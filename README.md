@@ -1,4 +1,4 @@
-# UVA-ContractMe
+# ContractMe
 
 ## Compilar y desplegar contratos
 
